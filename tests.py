@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 import time
 import numpy as np
 
-testing_apr03 = False               #Check apr eos
-testing_CFL = False                 #Check apr eos and intersection with apr
-testing_total_eos_B = False          #Check total eos for different values of bag constant B
-testing_total_eos_Delta = False      #Check total eos for different values of pairing gap Delta
+testing_apr03 = True               #Check apr eos
+testing_CFL = True                 #Check apr eos and intersection with apr
+testing_total_eos_B = True          #Check total eos for different values of bag constant B
+testing_total_eos_Delta = True      #Check total eos for different values of pairing gap Delta
 testing_total_eos_m_s = True        #Check total eos for different values strange mass m_s
 #Testing
 if(testing_apr03==True):
