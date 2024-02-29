@@ -288,9 +288,9 @@ if(testing_total_eos_m_s==True):
     
     time_0 = time.perf_counter()
     
-    N_m_s = 10
+    N_m_s = 3
     
-    m_s_vec = np.linspace(50,250,N_m_s)
+    m_s_vec = np.linspace(100,200,N_m_s)
     
     #First create apr eos, so we dont have to call it repeatedly
     N_apr03 = 2000

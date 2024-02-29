@@ -764,7 +764,7 @@ class CFL_EoS(object):
             mu_q_intersect,info,status,message = optimize.fsolve(self.find_transition_mu_q_to_mix_phase_functional,mu_q_guess,full_output =
                     True)
             if(status!=1):
-                mu_q_guess = [mu_q_guess_temp[0]+mu_q_guess_temp[0]*random.randrange(-10,10)/100]
+                mu_q_guess = [mu_q_guess_temp[0]+mu_q_guess_temp*random[0].randrange(-10,10)/100]
             else:
                 break
         if(i==9):
