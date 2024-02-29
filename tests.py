@@ -5,9 +5,9 @@ import numpy as np
 
 testing_apr03 = True               #Check apr eos
 testing_CFL = True                 #Check apr eos and intersection with apr
-testing_total_eos_B = True          #Check total eos for different values of bag constant B
-testing_total_eos_Delta = True      #Check total eos for different values of pairing gap Delta
-testing_total_eos_m_s = True        #Check total eos for different values strange mass m_s
+testing_total_eos_B = False          #Check total eos for different values of bag constant B
+testing_total_eos_Delta = False      #Check total eos for different values of pairing gap Delta
+testing_total_eos_m_s = False        #Check total eos for different values strange mass m_s
 #Testing
 if(testing_apr03==True):
 
@@ -113,9 +113,9 @@ if(testing_CFL==True):
     plt.plot(eos.eos_apr03.mu_n_apr03_combined_vec/3,eos.eos_apr03.P_apr03_combined_vec,label = "$P_{NM}$",color="blue")
     plt.plot(eos.mu_q_vec,eos.P_vec,'--',label = "P_vec",color="red")
     plt.legend()
-    plt.show()
     plt.savefig("figures/tests/figures_xeos_note/phases.pdf")
-    
+    plt.show()
+
 if(testing_total_eos_B==True):
     
     time_0 = time.perf_counter()
