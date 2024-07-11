@@ -27,12 +27,15 @@ def write_EoS_to_file(eos,filename,crust=True,filename_crust="nveos.in"):
     
     if(crust==True):
         write_crust_to_file(eos.status,filename,filename_crust)
+        file = open(filename,'a')
+    else:
+        file = open(filename,'w')
 
     e_vec = eos.e_vec
     P_vec = eos.P_vec
     rho_vec = eos.rho_vec
     
-    file = open(filename,'a')
+    
 
     for i in range(len(e_vec)):
         P = P_vec[i]

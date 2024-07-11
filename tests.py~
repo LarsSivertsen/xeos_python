@@ -6,14 +6,16 @@ import write_eos_to_file as wrt
 import TOV_Rahul
 
 testing_apr03 = False                #Check apr eos
-testing_CFL = False                  #Check apr eos and intersection with apr
-testing_total_eos_B = True          #Check total eos for different values of bag constant B
+testing_CFL = True                  #Check apr eos and intersection with apr
+testing_total_eos_B = False          #Check total eos for different values of bag constant B
 testing_total_eos_Delta = False      #Check total eos for different values of pairing gap Delta
-testing_total_eos_m_s = True        #Check total eos for different values strange mass m_s
+testing_total_eos_m_s = False        #Check total eos for different values strange mass m_s
 testing_reading_eos_from_file = False #Check that reading and writing to file worked as it should
-testing_M_R_realtions_B = True        #Test M_R_relations for the previous tests with varying B
-testing_M_R_realtions_Delta = True        #Test M_R_relations for the previous tests with varying Delta 
-testing_M_R_realtions_m_s = True        #Test M_R_relations for the previous tests with varying m_s
+testing_M_R_realtions_B = False        #Test M_R_relations for the previous tests with varying B
+testing_M_R_realtions_Delta = False        #Test M_R_relations for the previous tests with varying Delta 
+testing_M_R_realtions_m_s = False        #Test M_R_relations for the previous tests with varying m_s
+testing_CFL_RMF = True
+testing_total_eos_B_RMF = False
 #Testing
 if(testing_apr03==True):
 
@@ -97,29 +99,34 @@ if(testing_apr03==True):
 
 if(testing_CFL==True):
     time_0 = time.perf_counter()
-    N_CFL = 3000
-    N_CFL_kaons = 3000
+    N_CFL = 100
+    N_CFL_kaons = 300
     B = 190
     c = 0.
     Delta = 100
     m_s = 150
-    N_apr03 = 1000
-    eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,N_apr03=N_apr03,c=c)
+    N_apr03 = 300
+    eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,N_apr03=N_apr03,c=c,eos_name="APR")
     print("Time spent:", time.perf_counter()-time_0)
 
     plt.figure()
-    plt.xlim(300,425)
-    plt.ylim(0,225)
+    plt.title("APR, c="+str(np.round(c,2)))
+    plt.xlim(300,530)
+    plt.ylim(0,300)
     plt.xlabel("$\\mu_q$[MeV]")
     plt.ylabel("P[MeV/fm$^3$] / $\\mu[MeV]$")
     plt.plot(eos.mu_q_CFL_vec,eos.P_CFL_vec,label = "$P_{CFL}$",color = "green")
-    plt.plot(eos.mu_q_CFL_with_kaons_vec,eos.P_CFL_with_kaons_vec,label = "$P_{CFL}^k$",color="purple")
-    plt.plot(eos.mu_q_CFL_with_kaons_vec,eos.mu_e_CFL_with_kaons_vec,'*',label = "$\\mu_e^k$",color="red")
+    plt.plot(eos.mu_q_CFL_with_kaons_vec,eos.P_CFL_with_kaons_vec,label = "$P_{CFL}^k$",color="orange")
+    plt.plot(eos.mu_q_CFL_with_kaons_vec,eos.mu_e_CFL_with_kaons_vec,'--',label = "$\\mu_e^k$",color="black")
     plt.plot(eos.eos_apr03.mu_n_apr03_combined_vec/3,eos.eos_apr03.mu_e_apr03_combined_vec,label = "$\\mu_e$",color="black")
     plt.plot(eos.eos_apr03.mu_n_apr03_combined_vec/3,eos.eos_apr03.P_apr03_combined_vec,label = "$P_{NM}$",color="blue")
-    plt.plot(eos.mu_q_vec,eos.P_vec,'--',label = "P_vec",color="red")
+    plt.plot(eos.mu_q_vec,eos.P_vec,'--',label = "P",color="red")
     plt.legend()
-    plt.savefig("figures/tests/figures_xeos_note/phases.pdf")
+    if(c!=0):
+        quark_interact = "c!=0"
+    else:
+        quark_interact=""
+    plt.savefig("figures/tests/figures_xeos_note/phases"+quark_interact+".pdf")
     plt.show()
 
 if(testing_total_eos_B==True):
@@ -129,13 +136,12 @@ if(testing_total_eos_B==True):
     N_B = 10
     
     B_vec = np.linspace(175,210,N_B)
-    
     #First create apr eos, so we dont have to call it repeatedly
-    N_apr03 = 2000
+    N_apr03 = 500
     eos_apr03 = EoS_classes.apr03_EoS(N_apr03,rho_min_apr03=0.1,rho_max_apr03=2)
    
     N_CFL = 2000
-    N_CFL_kaons = 2000
+    N_CFL_kaons = 500
     Delta = 100
     m_s = 150
     c = 0.3
@@ -170,11 +176,6 @@ if(testing_total_eos_B==True):
 
         wrt.write_EoS_to_file(eos,"figures/tests/parameter_varying/B/eos_files/"+str(i).zfill(6))
 
-        #Remove zeros from vectors
-        mu_q_vec = eos.mu_q_vec[eos.mu_q_vec==0] = np.nan
-        P_vec = eos.P_vec[eos.P_vec==0] = np.nan
-        e_vec = eos.e_vec[eos.e_vec==0] = np.nan
-        ##
 
         plt.figure(1) 
         plt.plot(eos.mu_q_vec,eos.P_vec,label = "B$^{1/4}$="+str(np.round(B,decimals=1))+"MeV")
@@ -489,4 +490,130 @@ if(testing_M_R_realtions_m_s == True):
     print("Time spent:", time.perf_counter()-time_0)
     plt.savefig("figures/tests/parameter_varying/m_s/MR_crurvest.pdf")  
     plt.show()
+
+
+if(testing_CFL_RMF==True):
+    time_0 = time.perf_counter()
+    N = 100
+    N_CFL = 100
+    N_CFL_kaons = 100
+    B = 180
+    c = 0.1
+    Delta = 110
+    m_s = 150
+    N_RMF = 100
+    mu_q_max = 600
+    eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,N=N,N_RMF=N_RMF,c=c,eos_name="RMF",mu_q_max=mu_q_max)
+    print("Time spent:", time.perf_counter()-time_0)
+
+    plt.figure()
+    plt.title("RMF, c="+str(np.round(c,2)))
+    plt.xlim(300,530)
+    plt.ylim(0,300)
+    plt.xlabel("$\\mu_q$[MeV]")
+    plt.ylabel("P[MeV/fm$^3$] / $\\mu[MeV]$")
+    plt.plot(eos.mu_q_CFL_vec,eos.P_CFL_vec,label = "$P_{CFL}$",color = "green")
+    plt.plot(eos.mu_q_CFL_with_kaons_vec,eos.P_CFL_with_kaons_vec,label = "$P_{CFL}^k$",color="purple")
+    plt.plot(eos.mu_q_CFL_with_kaons_vec[eos.mu_e_CFL_with_kaons_vec>0],eos.mu_e_CFL_with_kaons_vec[eos.mu_e_CFL_with_kaons_vec>0],'--',label = "$\\mu_e^k$",color="black")
+    plt.plot(eos.eos_RMF.mu_n_vec/3,eos.eos_RMF.mu_e_vec,label = "$\\mu_e$",color="black")
+    plt.plot(eos.eos_RMF.mu_n_vec/3,eos.eos_RMF.P_vec,label = "$P_{NM}$",color="blue")
+    plt.plot(eos.mu_q_vec,eos.P_vec,'--',label = "P",color="red")
+    plt.legend()
+    if(c!=0):
+        quark_interact="c!=0"
+    else:
+        quark_interact=""
+    plt.savefig("figures/tests/figures_xeos_note/phases_RMF"+quark_interact+".pdf")
+    plt.show()
+
+
+if(testing_total_eos_B_RMF==True):
+    
+    time_0 = time.perf_counter()
+    
+    N_B = 3
+    
+    B_vec = np.linspace(175,210,N_B)
+    N = 500
+    N_RMF = 500
+    N_CFL = 100 
    
+    N_CFL_kaons = 500
+    Delta = 100
+    m_s = 150
+    c = 0.
+        
+    mu_q_max = 700
+
+    plt.figure(1)
+    plt.xlim(320,480)
+    plt.ylim(0,400)
+    plt.title("$\\Delta$ = "+str(Delta)+", $m_s$ = "+str(m_s)+", $c$ = "+str(c))
+    plt.xlabel("$\\mu_q$[MeV]")
+    plt.ylabel("$P$[MeV/fm$^3$]")
+
+    plt.figure(2)
+    plt.xlim(0,1000)
+    plt.ylim(0,400)
+    plt.title("$\\Delta$ = "+str(Delta)+", $m_s$ = "+str(m_s)+", $c$ = "+str(c))
+    plt.xlabel("$\\epsilon$[MeV/fm$^3$]")
+    plt.ylabel("P[MeV/fm$^3$]")
+
+    plt.figure(3)
+    plt.xlim(0,2)
+    plt.ylim(0,400)
+    plt.title("$\\Delta$ = "+str(Delta)+", $m_s$ = "+str(m_s)+", $c$ = "+str(c))
+    plt.xlabel("$\\rho$[fm$^{-3}$]")
+    plt.ylabel("P[MeV/fm$^3$]")
+
+    parameter_file = open("figures/tests/parameter_varying/B/parameters_RMF.txt",'w')
+    parameter_file.write("B, Delta, m_s \n")
+    for i in range(N_B):
+        B = B_vec[i]
+        eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,N=N,eos_name="RMF",c=c,N_RMF=N_RMF,mu_q_max=mu_q_max)
+        parameter_file.write(str(B)+" "+str(Delta)+" "+str(m_s)+"\n")
+
+        wrt.write_EoS_to_file(eos,"figures/tests/parameter_varying/B/eos_files_RMF/"+str(i).zfill(6),crust=False)
+
+
+        plt.figure(1) 
+        plt.plot(eos.mu_q_vec,eos.P_vec,label = "B$^{1/4}$="+str(np.round(B,decimals=1))+"MeV")
+        plt.plot(eos.mu_q_CFL_vec,eos.P_CFL_vec,label="CFL")
+        plt.legend()
+        
+        #print(eos.e_vec)
+        #print(eos.P_vec)
+        plt.figure(2)
+        plt.plot(eos.e_vec,eos.P_vec,label = "B$^{1/4}$="+str(np.round(B,decimals=1))+"MeV")
+        plt.plot(eos.e_CFL_vec,eos.P_CFL_vec,label="CFL")
+        plt.legend()
+
+        plt.figure(3)
+        plt.plot(eos.rho_vec,eos.P_vec,label = "B$^{1/4}$="+str(np.round(B,decimals=1))+"MeV")
+        plt.plot(eos.rho_CFL_vec,eos.P_CFL_vec,label="CFL")
+        plt.legend()
+    
+    parameter_file.close()
+
+    plt.figure(1)
+    plt.plot(eos.eos_RMF.mu_n_vec/3,eos.eos_RMF.P_vec,label = "NM",color = "black")
+    plt.legend()
+
+    plt.figure(2)
+    plt.plot(eos.eos_RMF.e_vec,eos.eos_RMF.P_vec,label = "NM",color = "black")
+    plt.legend()
+    
+    plt.figure(3)
+    plt.plot(eos.eos_RMF.rho_vec,eos.eos_RMF.P_vec,label = "NM",color = "black")
+    plt.legend()
+
+    print("Time spent:", time.perf_counter()-time_0)
+    plt.figure(1)
+    plt.savefig("figures/tests/parameter_varying/B/P_of_mu_q_RMF.pdf")
+    plt.figure(2)
+    plt.savefig("figures/tests/parameter_varying/B/P_of_e_RMF.pdf")
+    plt.figure(3)
+    plt.savefig("figures/tests/parameter_varying/B/P_of_rho_RMF.pdf")
+
+    plt.show()
+
