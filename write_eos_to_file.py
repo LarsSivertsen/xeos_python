@@ -21,10 +21,10 @@ def write_crust_to_file(status,filename,filename_crust):
         file.write(str(e)+" "+str(P)+" "+rho+"\n")
     file.close()
     file_crust.close()
-        
-        
-def write_EoS_to_file(eos,filename,crust=True,filename_crust="nveos.in"):  
-    
+
+
+def write_EoS_to_file(eos,filename,crust=True,filename_crust="nveos.in"):
+
     if(crust==True):
         write_crust_to_file(eos.status,filename,filename_crust)
         file = open(filename,'a')
@@ -34,8 +34,8 @@ def write_EoS_to_file(eos,filename,crust=True,filename_crust="nveos.in"):
     e_vec = eos.e_vec
     P_vec = eos.P_vec
     rho_vec = eos.rho_vec
-    
-    
+
+
 
     for i in range(len(e_vec)):
         P = P_vec[i]
@@ -43,11 +43,11 @@ def write_EoS_to_file(eos,filename,crust=True,filename_crust="nveos.in"):
         rho = rho_vec[i]
         if(P!=0):
             file.write(str(e)+" "+str(P)+" "+str(rho)+"\n")
-    
+
     file.close()
-    
-    return 
-    
+
+    return
+
 def read_EoS_from_file(filename):
     file = open(filename,'r')
     e_vec = []
@@ -55,7 +55,7 @@ def read_EoS_from_file(filename):
     rho_vec = []
 
     file.readline()
-    file.readline() 
+    file.readline()
     for line in file:
         line  = line.split()
         P = np.float64(line[1])
@@ -66,13 +66,13 @@ def read_EoS_from_file(filename):
         rho_vec.append(rho)
     file.close()
     return np.array(P_vec),np.array(e_vec),np.array(rho_vec)
-    
+
 def read_parameters_from_file(filename):
     file = open(filename,'r')
     B_vec = []
     Delta_vec = []
     m_s_vec = []
-    file.readline() 
+    file.readline()
     for line in file:
         line  = line.split()
         B = np.float64(line[0])
@@ -99,11 +99,11 @@ def write_MR_to_file(eos,filename):
         R = R_vec[i]
         Lambda = Lambda_vec[i]
         P_c = P_c_vec[i]
-        
+
         file.write(str(M)+" "+str(R)+" "+str(Lambda)+" "+str(P_c)+"\n")
-    
+
     file.close()
-    
+
     return
 
 def read_MR_from_file(filename):
@@ -113,14 +113,14 @@ def read_MR_from_file(filename):
     Lambda_vec = []
     P_c_vec = []
 
-    file.readline() 
+    file.readline()
     for line in file:
         line  = line.split()
         M = np.float64(line[0])
         R = np.float64(line[1])
         Lambda = np.float64(line[2])
         P_c = np.float(line[3])
-        
+
         M_vec.append(M)
         R_vec.append(R)
         Lambda_vec.append(Lambda)

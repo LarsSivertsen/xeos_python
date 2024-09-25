@@ -902,8 +902,6 @@ class CFL_EoS(object):
         elif(self.eos_name=="RMF"):
             mu_q_NM_vec = self.eos_RMF.mu_n_vec/3
             mu_e_NM_vec = self.eos_RMF.mu_e_vec
-        mu_q_CFL_vec = self.mu_q_CFL_with_kaons_vec
-        mu_e_mix_vec = self.mu_e_CFL_with_kaons_vec
         return self.mu_e_of_mu_q_kaons(mu_q)-np.interp(mu_q,mu_q_NM_vec,mu_e_NM_vec)
     
     #Finds the transition density from neutron matter to mixed phase by solving for zeros of find_transition_mu_q_to_mix_phase_functional
