@@ -1,9 +1,11 @@
-import EoS_classes 
 import write_eos_to_file as wrt
 import create_random_parameters as crp
 import time
 import numpy as np
 import os
+import exotic_eos
+import RMF_eos
+import APR03_eos
 from multiprocessing import Pool, Process, cpu_count
 
 
@@ -13,72 +15,80 @@ def task(i,
          m_s_vec,
          c,
          eos_apr03,
-         run_number
+         run_number,
+         N_CFL,
+         N_kaons,
+         fails
          ):
-    
+
     B = B_vec[i]
     Delta = Delta_vec[i]
     m_s = m_s_vec[i]
-
-    eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,c=c,eos_apr03 = eos_apr03,TOV=True)
-    
-    filename_eos = "runs/run_"+str(run_number)+"/EoS/"+str(i).zfill(6)+".txt"
-    wrt.write_EoS_to_file(eos,filename_eos)
-    filename_TOV = "runs/run_"+str(run_number)+"/TOV/"+str(i).zfill(6)+".txt"
-    wrt.write_MR_to_file(eos,filename_TOV)
-    
-    return 
+    c = c_vec[i]
+    eos = exotic_eos.CFL_EoS(B,Delta,m_s,c=c,N=N_CFL,N_kaons=N_kaons,eos_low_dens=eos_low_dens,TOV=True,eos_name=eos_name)
+    if(eos.status=="Success"):
+        filename_eos = "runs/run_"+str(run_number)+"/EoS/"+str(i).zfill(6)+".txt"
+        wrt.write_EoS_to_file(eos,filename_eos)
+        filename_TOV = "runs/run_"+str(run_number)+"/TOV/"+str(i).zfill(6)+".txt"
+        wrt.write_MR_to_file(eos,filename_TOV)
+    else:
+        fails.append(1)
+    return
 
 
 
 
 if __name__ == "__main__":
-    
+
     time_0 = time.perf_counter()
 
-    run_number = 2
+    run_number = 3
 
     if(os.path.isdir("runs/run_"+str(run_number))==False):
         os.mkdir("runs/run_"+str(run_number))
 
-    N_apr03 = 2000
-    eos_apr03 = EoS_classes.apr03_EoS(N_apr03)
-    
-    
+    N_low_dens = 2000
+    rho_max = 2
+    RMF_filename="FSUGarnet.inp"
+    eos_name = "RMF"
+    if(eos_name=="RMF"):
+        eos_low_dens = RMF_eos.EOS_set(N=N_low_dens,rho_max=rho_max,RMF_filename=RMF_filename,TOV=False)
+    elif(eos_name=="APR"):
+        eos_low_dens = APR03_eos(N=N_low_dens)
+
 
     filename_par = "runs/run_"+str(run_number)+"/parameters.txt"
 
-    N = 1000 #Number of EoS we compute
-    
+    N = 20 #Number of EoS we compute
     N_CFL = 2000
-    N_CFL_kaons = 2000
+    N_kaons = 2000
 
 
     B_range = [175,210]
     Delta_range = [50,150]
     m_s_range = [50,250]
-    c = 0.3
+    c_range = [0,0.6]
 
-    parameter_ranges = [B_range,Delta_range,m_s_range]
-    
-    crp.make_parameter_file(filename_par,N,parameter_ranges)
+    parameter_ranges = [B_range,Delta_range,m_s_range,c_range]
+    distributions=["uniform","uniform","uniform","uniform"]
+    crp.make_parameter_file(filename_par,N,parameter_ranges,distributions=distributions)
 
-    B_vec, Delta_vec, m_s_vec = crp.read_parameters_from_file(filename_par)
-    
+    B_vec, Delta_vec, m_s_vec, c_vec = crp.read_parameters_from_file(filename_par)
+
     if(os.path.isdir("runs/run_"+str(run_number)+"/EoS")==False):
         os.mkdir("runs/run_"+str(run_number)+"/EoS")
-    
+
     if(os.path.isdir("runs/run_"+str(run_number)+"/TOV")==False):
         os.mkdir("runs/run_"+str(run_number)+"/TOV")
-    
+
     progress = 0
     d_progress = 100./N
-    print("Done generating APR03")
+    print("Done generating low density eos")
     print("Progress: 0%")
 
-
-    k_N = int(np.floor(N/200)
-    j_N = 200
+    j_N = min([200,N])
+    k_N = int(np.floor(N/j_N))
+    fails = []
     for k in range(k_N):
         for j in range(j_N):
             i = j+j_N*k
@@ -90,52 +100,39 @@ if __name__ == "__main__":
                                                      B_vec,
                                                      Delta_vec,
                                                      m_s_vec,
-                                                     c,
-                                                     eos_apr03,
-                                                     run_number))
+                                                     c_vec,
+                                                     eos_low_dens,
+                                                     run_number,
+                                                     N_CFL,
+                                                     N_kaons,
+                                                     fails))
             process.start()
         process.join()
-
+    print("Fail percentage = ",str(sum(fails)/N)
+    print("Time spent:", time.perf_counter()-time_0)
+'''
     for l in range(N-k_N*j_N):
         i += 1
         if(int(progress)<int(progress+d_progress)):
             print("progress: "+str(int(progress+d_progress))+"%")
         progress+=d_progress
-
         process = Process(target = task, args = (i,
                                                  B_vec,
                                                  Delta_vec,
                                                  m_s_vec,
-                                                 c,
-                                                 eos_apr03,
-                                                 run_number))
-
+                                                 c_vec,
+                                                 eos_low_dens,
+                                                 run_number,
+                                                 N_CFL,
+                                                 N_kaons))
         process.start()
     process.join()
+'''
 
 
 
-    print("Time spent:", time.perf_counter()-time_0)
-                             
-        
-    '''
-    for i in range(N):
-        if(np.mod(i,np.ceil(N/100))==0):
-            print("progress: "+str(progress)+"%")
-            progress+=1
-        B = B_vec[i]
-        Delta = Delta_vec[i]
-        m_s = m_s_vec[i]
 
-        eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,c=c,eos_apr03 = eos_apr03,TOV=True)
-        
-        filename_eos = "runs/run_"+str(run_number)+"/EoS/"+str(i).zfill(6)+".txt"
-        wrt.write_EoS_to_file(eos,filename_eos)
-        filename_TOV = "runs/run_"+str(run_number)+"/TOV/"+str(i).zfill(6)+".txt"
-        wrt.write_MR_to_file(eos,filename_TOV)
-    '''
 
-    
 
 
 

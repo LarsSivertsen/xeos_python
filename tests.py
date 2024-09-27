@@ -1,12 +1,14 @@
-import EoS_classes
+import APR03_eos
 import matplotlib.pyplot as plt
 import time
 import numpy as np
 import write_eos_to_file as wrt
 import TOV_Rahul
+import exotic_eos
+import RMF_eos
 
-testing_apr03 = False                #Check apr eos
-testing_CFL = False                  #Check apr eos and intersection with apr
+testing_apr03 = False               #Check apr eos
+testing_CFL = True                  #Check CFL eos and intersection with apr
 testing_total_eos_B = False          #Check total eos for different values of bag constant B
 testing_total_eos_Delta = False      #Check total eos for different values of pairing gap Delta
 testing_total_eos_m_s = False        #Check total eos for different values strange mass m_s
@@ -17,7 +19,7 @@ testing_M_R_realtions_m_s = False        #Test M_R_relations for the previous te
 testing_CFL_RMF = False
 testing_CFL_RMF_MARK = False
 plot_original_phases = False
-testing_total_eos_B_RMF = True
+testing_total_eos_B_RMF = False
 testing_total_eos_Delta_RMF = False
 testing_total_eos_m_s_RMF = False
 #Testing
@@ -26,7 +28,7 @@ if(testing_apr03==True):
     time_0 = time.perf_counter()
 
     N_apr03 = 1000
-    eos = EoS_classes.apr03_EoS(N_apr03)
+    eos = APR03_eos.apr03_EoS(N_apr03)
     print("Time spent:", time.perf_counter()-time_0)
 
     plt.figure()
@@ -110,7 +112,7 @@ if(testing_CFL==True):
     Delta = 100
     m_s = 150
     N_apr03 = 300
-    eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,N_apr03=N_apr03,c=c,eos_name="APR")
+    eos = exotic_eos.CFL_EoS(B,Delta,m_s,N=N_CFL,N_kaons=N_CFL_kaons,N_low_dens=N_apr03,c=c,eos_name="APR")
     print("Time spent:", time.perf_counter()-time_0)
 
     plt.figure()
@@ -122,8 +124,8 @@ if(testing_CFL==True):
     plt.plot(eos.mu_q_CFL_vec,eos.P_CFL_vec,label = "$P_{CFL}$",color = "green")
     plt.plot(eos.mu_q_CFL_with_kaons_vec,eos.P_CFL_with_kaons_vec,label = "$P_{CFL}^k$",color="orange")
     plt.plot(eos.mu_q_CFL_with_kaons_vec,eos.mu_e_CFL_with_kaons_vec,'--',label = "$\\mu_e^k$",color="black")
-    plt.plot(eos.eos_apr03.mu_n_apr03_combined_vec/3,eos.eos_apr03.mu_e_apr03_combined_vec,label = "$\\mu_e$",color="black")
-    plt.plot(eos.eos_apr03.mu_n_apr03_combined_vec/3,eos.eos_apr03.P_apr03_combined_vec,label = "$P_{NM}$",color="blue")
+    plt.plot(eos.eos_low_dens.mu_n_vec/3,eos.eos_low_dens.mu_e_vec,label = "$\\mu_e$",color="black")
+    plt.plot(eos.eos_low_dens.mu_n_vec/3,eos.eos_low_dens.P_vec,label = "$P_{NM}$",color="blue")
     plt.plot(eos.mu_q_vec,eos.P_vec,'--',label = "P",color="red")
     plt.legend()
     if(c!=0):
@@ -142,7 +144,7 @@ if(testing_total_eos_B==True):
     B_vec = np.linspace(175,210,N_B)
     #First create apr eos, so we dont have to call it repeatedly
     N_apr03 = 500
-    eos_apr03 = EoS_classes.apr03_EoS(N_apr03,rho_min_apr03=0.1,rho_max_apr03=2)
+    eos_apr03 = APR03_eos.apr03_EoS(N_apr03,rho_min_apr03=0.1,rho_max_apr03=2)
 
     N_CFL = 2000
     N_CFL_kaons = 500
@@ -175,7 +177,7 @@ if(testing_total_eos_B==True):
     parameter_file.write("B, Delta, m_s \n")
     for i in range(N_B):
         B = B_vec[i]
-        eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,eos_apr03=eos_apr03,c=c)
+        eos = exotic_eos.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,eos_apr03=eos_apr03,c=c)
         parameter_file.write(str(B)+" "+str(Delta)+" "+str(m_s)+"\n")
 
         wrt.write_EoS_to_file(eos,"figures/tests/parameter_varying/B/eos_files/"+str(i).zfill(6))
@@ -227,7 +229,7 @@ if(testing_total_eos_Delta==True):
 
     #First create apr eos, so we dont have to call it repeatedly
     N_apr03 = 2000
-    eos_apr03 = EoS_classes.apr03_EoS(N_apr03,rho_min_apr03=0.1,rho_max_apr03=2)
+    eos_apr03 = APR03_eos.apr03_EoS(N_apr03,rho_min_apr03=0.1,rho_max_apr03=2)
 
     N_CFL = 2000
     N_CFL_kaons = 2000
@@ -260,7 +262,7 @@ if(testing_total_eos_Delta==True):
     parameter_file.write("B, Delta, m_s \n")
     for i in range(N_Delta):
         Delta = Delta_vec[i]
-        eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,eos_apr03=eos_apr03,c=c)
+        eos = exotic_eos.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,eos_apr03=eos_apr03,c=c)
         parameter_file.write(str(B)+" "+str(Delta)+" "+str(m_s)+"\n")
 
         #Remove zeros from vectors
@@ -316,7 +318,7 @@ if(testing_total_eos_m_s==True):
 
     #First create apr eos, so we dont have to call it repeatedly
     N_apr03 = 2000
-    eos_apr03 = EoS_classes.apr03_EoS(N_apr03,rho_min_apr03=0.1,rho_max_apr03=2)
+    eos_apr03 = APR_eos.apr03_EoS(N_apr03,rho_min_apr03=0.1,rho_max_apr03=2)
 
     N_CFL = 2000
     N_CFL_kaons = 2000
@@ -349,7 +351,7 @@ if(testing_total_eos_m_s==True):
     parameter_file.write("B, Delta, m_s \n")
     for i in range(N_m_s):
         m_s = m_s_vec[i]
-        eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,eos_apr03=eos_apr03,c=c)
+        eos = exotic_eos.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,eos_apr03=eos_apr03,c=c)
         parameter_file.write(str(B)+" "+str(Delta)+" "+str(m_s)+"\n")
 
         wrt.write_EoS_to_file(eos,"figures/tests/parameter_varying/m_s/eos_files/"+str(i).zfill(6))
@@ -507,7 +509,7 @@ if(testing_CFL_RMF==True):
     m_s = 150
     N_RMF = 300
     mu_q_max = 600
-    eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,N=N,N_RMF=N_RMF,c=c,eos_name="RMF",mu_q_max=mu_q_max)
+    eos = exotic_eos.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,N=N,N_RMF=N_RMF,c=c,eos_name="RMF",mu_q_max=mu_q_max)
     print("Time spent:", time.perf_counter()-time_0)
 
     plt.figure()
@@ -544,7 +546,7 @@ if(testing_CFL_RMF_MARK==True):
     m_s = 150
     N_RMF = 300
     mu_q_max = 600
-    eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,N=N,N_RMF=N_RMF,c=c,eos_name="RMF",mu_q_max=mu_q_max,FSUGold_filename="FSUGold_MARK.inp")
+    eos = exotic_eos.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,N=N,N_RMF=N_RMF,c=c,eos_name="RMF",mu_q_max=mu_q_max,FSUGold_filename="FSUGold_MARK.inp")
     print("Time spent:", time.perf_counter()-time_0)
 
     plt.figure()
@@ -663,7 +665,7 @@ if(testing_total_eos_B_RMF==True):
     for i in range(N_B):
         B = B_vec[i]
         print(B)
-        eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,N=N,eos_name="RMF",c=c,N_RMF=N_RMF,mu_q_max=mu_q_max,TOV=True,FSUGold_filename="FSUGoldgarnet.inp")
+        eos = exotic_eos.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,N=N,eos_name="RMF",c=c,N_RMF=N_RMF,mu_q_max=mu_q_max,TOV=True,FSUGold_filename="FSUGoldgarnet.inp")
         parameter_file.write(str(B)+" "+str(Delta)+" "+str(m_s)+"\n")
 
         wrt.write_EoS_to_file(eos,"figures/tests/parameter_varying/B/eos_files_RMF/"+str(i).zfill(6),crust=True)
@@ -738,7 +740,7 @@ if(testing_total_eos_Delta_RMF==True):
 
     #First create apr eos, so we dont have to call it repeatedly
     N_apr03 = 2000
-    eos_apr03 = EoS_classes.apr03_EoS(N_apr03,rho_min_apr03=0.1,rho_max_apr03=2)
+    eos_apr03 = APR_eos.apr03_EoS(N_apr03,rho_min_apr03=0.1,rho_max_apr03=2)
 
     N_CFL = 2000
     N_CFL_kaons = 2000
@@ -771,7 +773,7 @@ if(testing_total_eos_Delta_RMF==True):
     parameter_file.write("B, Delta, m_s \n")
     for i in range(N_Delta):
         Delta = Delta_vec[i]
-        eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,eos_apr03=eos_apr03,c=c)
+        eos = exotic_eos.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,eos_apr03=eos_apr03,c=c)
         parameter_file.write(str(B)+" "+str(Delta)+" "+str(m_s)+"\n")
 
         #Remove zeros from vectors
@@ -827,7 +829,7 @@ if(testing_total_eos_m_s==True):
 
     #First create apr eos, so we dont have to call it repeatedly
     N_apr03 = 2000
-    eos_apr03 = EoS_classes.apr03_EoS(N_apr03,rho_min_apr03=0.1,rho_max_apr03=2)
+    eos_apr03 = APR03_eos.apr03_EoS(N_apr03,rho_min_apr03=0.1,rho_max_apr03=2)
 
     N_CFL = 2000
     N_CFL_kaons = 2000
@@ -860,7 +862,7 @@ if(testing_total_eos_m_s==True):
     parameter_file.write("B, Delta, m_s \n")
     for i in range(N_m_s):
         m_s = m_s_vec[i]
-        eos = EoS_classes.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,eos_apr03=eos_apr03,c=c)
+        eos = exotic_eos.CFL_EoS(N_CFL,N_CFL_kaons,B,Delta,m_s,eos_apr03=eos_apr03,c=c)
         parameter_file.write(str(B)+" "+str(Delta)+" "+str(m_s)+"\n")
 
         wrt.write_EoS_to_file(eos,"figures/tests/parameter_varying/m_s/eos_files_RMF/"+str(i).zfill(6),crust=False)

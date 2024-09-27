@@ -65,9 +65,9 @@ def tov_solve(epsilon,press,c2_s,rtol=1.e-6,atol=1.e-5,TOV_limit=True, h_c_grid 
         return interpolate.splev(h, spl3, der=0)
 
     if h_c_grid == 'coarse':
-        central_enthalpies = np.geomspace(0.01,max_enthalpy,125)
+        central_enthalpies = np.geomspace(0.05,max_enthalpy,125)
     else:
-        central_enthalpies = np.linspace(0.01,max_enthalpy,500)
+        central_enthalpies = np.linspace(0.05,max_enthalpy,500)
 
 
     Radius = np.zeros_like(central_enthalpies)
