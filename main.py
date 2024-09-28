@@ -17,8 +17,7 @@ def task(i,
          eos_apr03,
          run_number,
          N_CFL,
-         N_kaons,
-         fails
+         N_kaons
          ):
 
     B = B_vec[i]
@@ -32,7 +31,7 @@ def task(i,
         filename_TOV = "runs/run_"+str(run_number)+"/TOV/"+str(i).zfill(6)+".txt"
         wrt.write_MR_to_file(eos,filename_TOV)
     else:
-        fails.append(1)
+        return
     return
 
 
@@ -59,7 +58,7 @@ if __name__ == "__main__":
 
     filename_par = "runs/run_"+str(run_number)+"/parameters.txt"
 
-    N = 20 #Number of EoS we compute
+    N = 50 #Number of EoS we compute
     N_CFL = 2000
     N_kaons = 2000
 
@@ -84,11 +83,12 @@ if __name__ == "__main__":
     progress = 0
     d_progress = 100./N
     print("Done generating low density eos")
+    print("Time spent generating low density eos:", time.perf_counter()-time_0)
+    time_0 = time.perf_counter()
     print("Progress: 0%")
 
     j_N = min([200,N])
     k_N = int(np.floor(N/j_N))
-    fails = []
     for k in range(k_N):
         for j in range(j_N):
             i = j+j_N*k
@@ -104,12 +104,11 @@ if __name__ == "__main__":
                                                      eos_low_dens,
                                                      run_number,
                                                      N_CFL,
-                                                     N_kaons,
-                                                     fails))
+                                                     N_kaons)
+                              )
             process.start()
         process.join()
-    print("Fail percentage = ",str(sum(fails)/N)
-    print("Time spent:", time.perf_counter()-time_0)
+    print("Time spent on exotic part:", time.perf_counter()-time_0)
 '''
     for l in range(N-k_N*j_N):
         i += 1
