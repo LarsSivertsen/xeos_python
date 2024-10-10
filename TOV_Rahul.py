@@ -55,6 +55,7 @@ def tov_solve(epsilon,press,c2_s,rtol=1.e-6,atol=1.e-5,TOV_limit=True, h_c_grid 
     spl2 = interpolate.splrep(enthalpy, np.log(press),k=1)
     spl3 = interpolate.splrep(enthalpy, c2_s, k=1)
 
+
     def eos1(h):
         return np.exp(interpolate.splev(h, spl1, der=0))
 

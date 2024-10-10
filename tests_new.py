@@ -116,8 +116,8 @@ def testing_CFL(B=190
         title = "No mixed phase. "
     else:
         title=""
-    title += ("Low density eos: "+eos_name+"\n B="
-             +str(np.round(B,2))+"(MeV)$^{1/4}$"+", $\\Delta=$"
+    title += ("Low density eos: "+eos_name+"\n B$^{1/4}$="
+             +str(np.round(B,2))+"MeV"+", $\\Delta=$"
              +str(np.round(Delta))+"MeV, $m_s$="+str(np.round(m_s,2))
              +"MeV, c="+str(np.round(c,2))
              )
@@ -178,8 +178,8 @@ def testing_CFL(B=190
     plt.ylabel("P[MeV/fm$^3$] / $\\mu[MeV]$")
     plt.plot(eos.mu_q_CFL_vec,eos.P_CFL_vec,label = "$P_{CFL}$",color = "green")
     if(mix_phase==True):
-        plt.plot(eos.mu_q_CFL_with_kaons_vec,eos.P_CFL_with_kaons_vec,label = "$P_{CFL}^k$",color="orange")
-        plt.plot(eos.mu_q_CFL_with_kaons_vec,eos.mu_e_CFL_with_kaons_vec,'--',label = "$\\mu_e^k$",color="black")
+        plt.plot(eos.mu_q_CFL_kaons_vec,eos.P_CFL_kaons_vec,label = "$P_{CFL}^k$",color="orange")
+        plt.plot(eos.mu_q_CFL_kaons_vec,eos.mu_e_CFL_kaons_vec,'--',label = "$\\mu_e^k$",color="black")
     plt.plot(eos.eos_low_dens.mu_n_vec/3,eos.eos_low_dens.mu_e_vec,label = "$\\mu_e$",color="black")
     plt.plot(eos.eos_low_dens.mu_n_vec/3,eos.eos_low_dens.P_vec,label = "$P_{NM}$",color="blue")
     plt.plot(eos.mu_q_vec,eos.P_vec,'--',label = "P",color="red")
@@ -211,7 +211,6 @@ def testing_total_eos(B=190
                      ,N_kaons=300
                      ,N_low_dens=100
                      ,rho_max=3
-                     ,eos_name="APR"
                      ,RMF_filename="FSUGarnet.inp"
                      ,mix_phase=True
                      ,figsize=(10,10)
@@ -219,7 +218,7 @@ def testing_total_eos(B=190
                      ,skip_repeating_low_dens=True
                      ,TOV=False):
 
-
+    eos_name = "RMF"
     time_0 = time.perf_counter()
     variable_names = ["B","Delta","m_s","c"]
     if(skip_repeating_low_dens):
@@ -230,8 +229,8 @@ def testing_total_eos(B=190
     if(variable=="B"):
         rnd=1
         title = "$\\Delta=$"+str(np.round(Delta,1))+"MeV, $m_s$="+str(np.round(m_s,1))+"MeV, c="+str(np.round(c,3))
-        label_variable="B"
-        unit = "(MeV)$^{1/4}$"
+        label_variable="B$^{1/4}$"
+        unit = "MeV"
         B_vec = np.linspace(variable_range[0],variable_range[1],N_variable)
         all_eos = [exotic_eos.CFL_EoS(B
                                   ,Delta
@@ -430,14 +429,15 @@ def test_writing_parameter_sets(filename="tests/all/parameters.txt"
     plt.xlabel("c")
     plt.show()
 
-def test_write_and_read_eos_to_file(filename="runs/tests/EoS_files/test.txt",B=190,Delta=100,m_s=150,c=0.):
+def test_write_and_read_eos_to_file(filename="runs/tests/EoS_files/test.txt",B=190,Delta=100,m_s=150,c=0.,eos_name="APR"):
     eos=exotic_eos.CFL_EoS(B
                        ,Delta
                        ,m_s
-                       ,c=c)
+                       ,c=c
+                       ,eos_name=eos_name)
 
     wrt.write_EoS_to_file(eos,filename)
-    P_vec,e_vec,rho_vec,v2_vec = wrt.read_EoS_from_file(filename)
+    P_vec,e_vec,rho_vec,v2_vec,mu_q_vec,mu_e_vec = wrt.read_EoS_from_file(filename)
     plt.figure()
     plt.plot(e_vec,P_vec)
     plt.xlabel("$\\epsilon$[MeV/fm$^{3}$]")
@@ -456,7 +456,6 @@ def test_write_and_read_MR_to_file(filename="runs/tests/MR_files/test.txt",B=190
                        ,m_s
                        ,c=c
                        ,TOV=True)
-
     wrt.write_MR_to_file(eos,filename)
     M_vec,R_vec,Lambda_vec,P_c_vec = wrt.read_MR_from_file(filename)
     plt.figure()

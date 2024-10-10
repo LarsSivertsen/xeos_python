@@ -249,7 +249,7 @@ class EOS_set:
         kF_n = self.get_kF((1-xp)*dens)
         kF_p = self.get_kF(xp*dens)
         kF_e = kFe
-        kF_m = (kF_p**3-kF_e**3)**(1/3)
+        kF_m = (abs(kF_p**3-kF_e**3))**(1/3)
 
         #scalar-field terms
         s_terms = 1/6*self.kappa*(s_field)**3+1/24*self.lambd*(s_field)**4+1/2*self.ms**2/self.gs2*(s_field)**2
@@ -280,7 +280,7 @@ class EOS_set:
         kF_n = self.get_kF((1-xp)*dens)
         kF_p = self.get_kF(xp*dens)
         kF_e = kFe
-        kF_m = (kF_p**3-kF_e**3)**(1/3)
+        kF_m = (abs(kF_p**3-kF_e**3))**(1/3)
 
 
         #scalar self-interaction terms

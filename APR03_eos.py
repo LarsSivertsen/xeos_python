@@ -87,8 +87,8 @@ class apr03_EoS(object):
             tau_n = 0
             tau_p = 0
         else:
-            tau_n = 1/(5*np.pi**2)*((3*np.pi**2*rho*(1-xp)))**(5/3)
-            tau_p = 1/(5*np.pi**2)*((3*np.pi**2*rho*xp))**(5/3)
+            tau_n = 1/(5*np.pi**2)*(3*np.pi**2*rho*(1-xp))**(5/3)
+            tau_p = 1/(5*np.pi**2)*(3*np.pi**2*rho*xp)**(5/3)
 
         #eq 1 in xeos note
         if(self.p4*rho>200):

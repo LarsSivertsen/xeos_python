@@ -56,12 +56,13 @@ Input parameters:
     plot_original_phases:   If set to True, show comparison to a simple Waleca model. Also,
                             use parameters that are more similar to this Waleca model
 '''
-#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=100,N_kaons=300,N_low_dens=300,eos_name="APR")
-#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=100,N_kaons=300,N_low_dens=300,eos_name="RMF")
-#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=100,N_kaons=300,N_low_dens=300,eos_name="RMF",mix_phase=False)
-#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.3,N=100,N_kaons=300,N_low_dens=300,eos_name="RMF",mix_phase=False)
-#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=100,N_kaons=300,N_low_dens=300,eos_name="RMF",plot_original_phases=True)
-#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.3,N=300,N_kaons=300,N_low_dens=300,eos_name="RMF",plot_original_phases=True)
+#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="APR")
+#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=100,N_kaons=100,N_low_dens=100,eos_name="RMF")
+#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.3,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF")
+#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF",mix_phase=False)
+#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.3,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF",mix_phase=False)
+#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF",plot_original_phases=True)
+#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.3,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF",plot_original_phases=True)
 
 
 '''
@@ -87,11 +88,10 @@ Input parameters:
                             use parameters that are more similar to this Waleca model
 
 '''
-#tst.testing_total_eos(variable="B",variable_range=[175,220],N_variable=5,N=300,N_kaons=300,N_low_dens=300,eos_name="RMF",TOV=True)
-#tst.testing_total_eos(variable="Delta",variable_range=[60,140],N_variable=5,N=300,N_kaons=300,N_low_dens=300,eos_name="RMF",TOV=True)
-#tst.testing_total_eos(variable="m_s",variable_range=[130,180],N_variable=5,N=300,N_kaons=300,N_low_dens=300,eos_name="RMF",TOV=True)
-#tst.testing_total_eos(variable="c",variable_range=[0,0.4],N_variable=5,N=300,N_kaons=300,N_low_dens=300,eos_name="RMF",TOV=True)
-
+#tst.testing_total_eos(variable="B",variable_range=[175,220],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
+#tst.testing_total_eos(variable="Delta",variable_range=[10,150],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
+#tst.testing_total_eos(variable="m_s",variable_range=[50,250],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
+tst.testing_total_eos(variable="c",B=200,variable_range=[0.8,0.9],N_variable=5,N=100,N_kaons=100,N_low_dens=100,TOV=True)
 '''
 Test that creating parameter sets works
 
@@ -114,7 +114,7 @@ Test that writing eos to file works
 Input parameters:
     filename:   Filename we write eos to
 '''
-#tst.test_write_and_read_eos_to_file(filename="runs/tests/EoS_files/test.txt")
+#tst.test_write_and_read_eos_to_file(filename="runs/tests/EoS_files/test.txt",eos_name="APR")
 
 '''
 Test if MR write to file works
@@ -123,6 +123,5 @@ Input parameters:
     filenmae:   Filename we write MR to
 '''
 #tst.test_write_and_read_MR_to_file(filename="runs/tests/MR_files/test.txt")
-
 
 

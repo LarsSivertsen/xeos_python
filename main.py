@@ -7,6 +7,7 @@ import exotic_eos
 import RMF_eos
 import APR03_eos
 from multiprocessing import Pool, Process, cpu_count
+import summarize_folder as sf
 
 
 def task(i,
@@ -41,12 +42,12 @@ if __name__ == "__main__":
 
     time_0 = time.perf_counter()
 
-    run_number = 3
+    run_number = 6
 
     if(os.path.isdir("runs/run_"+str(run_number))==False):
         os.mkdir("runs/run_"+str(run_number))
 
-    N_low_dens = 2000
+    N_low_dens = 1000
     rho_max = 2
     RMF_filename="FSUGarnet.inp"
     eos_name = "RMF"
@@ -58,15 +59,15 @@ if __name__ == "__main__":
 
     filename_par = "runs/run_"+str(run_number)+"/parameters.txt"
 
-    N = 50 #Number of EoS we compute
-    N_CFL = 2000
-    N_kaons = 2000
+    N = 15000 #Number of EoS we compute
+    N_CFL = 1000
+    N_kaons = 1000
 
 
-    B_range = [175,210]
-    Delta_range = [50,150]
+    B_range = [180,220]
+    Delta_range = [50,120]
     m_s_range = [50,250]
-    c_range = [0,0.6]
+    c_range = [0.,0.3]
 
     parameter_ranges = [B_range,Delta_range,m_s_range,c_range]
     distributions=["uniform","uniform","uniform","uniform"]
@@ -87,7 +88,7 @@ if __name__ == "__main__":
     time_0 = time.perf_counter()
     print("Progress: 0%")
 
-    j_N = min([200,N])
+    j_N = min([100,N])
     k_N = int(np.floor(N/j_N))
     for k in range(k_N):
         for j in range(j_N):
@@ -109,24 +110,8 @@ if __name__ == "__main__":
             process.start()
         process.join()
     print("Time spent on exotic part:", time.perf_counter()-time_0)
-'''
-    for l in range(N-k_N*j_N):
-        i += 1
-        if(int(progress)<int(progress+d_progress)):
-            print("progress: "+str(int(progress+d_progress))+"%")
-        progress+=d_progress
-        process = Process(target = task, args = (i,
-                                                 B_vec,
-                                                 Delta_vec,
-                                                 m_s_vec,
-                                                 c_vec,
-                                                 eos_low_dens,
-                                                 run_number,
-                                                 N_CFL,
-                                                 N_kaons))
-        process.start()
-    process.join()
-'''
+    sf.make_filename_list(run_number)
+
 
 
 
