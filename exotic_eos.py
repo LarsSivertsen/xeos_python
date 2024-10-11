@@ -101,11 +101,19 @@ class CFL_EoS(object):
         if(self.TOV==True):
             if(self.status!="Fail"):
                 self.add_crust()
-                R_vec,M_vec,Lambda_vec,P_c_vec = TOV_Rahul.tov_solve(self.e_w_crust_vec,self.P_w_crust_vec,self.v2_w_crust_vec)
-                self.R_vec = R_vec
-                self.M_vec = M_vec
-                self.Lambda_vec = Lambda_vec
-                self.P_c_vec = P_c_vec
+                if(sum(np.isnan(self.v2_w_crust_vec))>0 or min(self.v2_w_crust_vec)<0):
+                    self.status="Fail"
+                    self.R_vec = np.zeros(100)
+                    self.M_vec = np.zeros(100)
+                    self.Lambda_vec = np.zeros(100)
+                    self.P_c_vec = np.zeros(100)
+                    return
+                else:
+                    R_vec,M_vec,Lambda_vec,P_c_vec = TOV_Rahul.tov_solve(self.e_w_crust_vec,self.P_w_crust_vec,self.v2_w_crust_vec)
+                    self.R_vec = R_vec
+                    self.M_vec = M_vec
+                    self.Lambda_vec = Lambda_vec
+                    self.P_c_vec = P_c_vec
             else:
                 self.R_vec = np.zeros(100)
                 self.M_vec = np.zeros(100)
@@ -782,10 +790,10 @@ class CFL_EoS(object):
             else:
                 break
         v2_crust = np.gradient(np.array(P_crust),np.array(e_crust),edge_order=2)
-        self.P_w_crust_vec = np.concatenate((np.array(P_crust),self.P_vec))
-        self.e_w_crust_vec = np.concatenate((np.array(e_crust),self.e_vec))
-        self.rho_w_crust_vec = np.concatenate((np.array(rho_crust),self.rho_vec))
-        self.v2_w_crust_vec = np.concatenate((v2_crust,self.v2_vec))
+        self.P_w_crust_vec = np.concatenate((np.array(P_crust),self.P_vec))[1:]
+        self.e_w_crust_vec = np.concatenate((np.array(e_crust),self.e_vec))[1:]
+        self.rho_w_crust_vec = np.concatenate((np.array(rho_crust),self.rho_vec))[1:]
+        self.v2_w_crust_vec = np.concatenate((v2_crust,self.v2_vec))[1:]
 
 
 
