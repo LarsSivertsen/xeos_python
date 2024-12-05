@@ -16,17 +16,17 @@ class CFL_EoS(object):
                      ,N_kaons = 100             #Number of points used to compute mixed kaon and CFL phase
                      ,N_low_dens = 400          #Number of points used in low density phase of the EoS                         #Bag constant
                      ,mu_q_min = 312.           #Minimum quark chemical potential we start computing CFL from [MeV]
-                     ,mu_q_max = 700            #Maximum quark chemical potential we compute the CFL phase to [MeV]
+                     ,mu_q_max = 1000            #Maximum quark chemical potential we compute the CFL phase to [MeV]
                      ,rho_min_low_dens = 0.1             #Lowest number density we compute for the low density phaseAPR03 [fm^-3]
-                     ,rho_max_low_dens = 3               #Max density we compute low density phase [fm^-3]
+                     ,rho_max_low_dens = 6.4               #Max density we compute low density phase [fm^-3]
                      ,d_rho = 0.0001            #When computing derivatives in APR, we use this step size in rho
                      ,tol = 1e-6                #Absolute tolerance used in root solvers finding electron density and proton fraction
                      ,c = 0.                    #Phenomenological parameter for quark interactions. Usually set to 0.3
                      ,eos_name = "APR"          #Name of nuclear EoS (supports at the moment APR and RMF)
-
+                     ,TOV_limit = False         #True if we compute only up to dM/dR=0 in the TOV solver
                      ,eos_low_dens = None       #If we already have computed the low density EoS, we can insert it here, so we don't have to
                                                 #compute it again
-                     ,RMF_filename = "FSUGoldgarnet.inp" #Filename for the parameters used in the RMF model
+                     ,RMF_filename = "FSUgarnet.inp" #Filename for the parameters used in the RMF model
                      ,TOV=False                 #If set to True, compute MR curves in addition to EoS
                      ,mix_phase=True            #If set to False, there is no Kaon phase
                      ,filename_crust = "nveos.in"
@@ -53,6 +53,7 @@ class CFL_EoS(object):
         self.eos_name = eos_name
         self.mix_phase = mix_phase
         self.TOV = TOV
+        self.TOV_limit = TOV_limit
         #The next if statement checks if a low density eos is given,
         #otherwise, create one based on the name given in eos_name
         if(eos_low_dens!=None):
@@ -82,38 +83,47 @@ class CFL_EoS(object):
         mask_xp = self.remove_nan_mask(xp_NM_vec,mu_q_NM_vec)
         mask_e = self.remove_nan_mask(e_NM_vec,mu_q_NM_vec)
         mask_mu_e = self.remove_nan_mask(mu_e_NM_vec,mu_q_NM_vec)
+        order = "linear"
+        self.e_of_mu_q_low_dens = interp1d(mu_q_NM_vec[mask_e],e_NM_vec[mask_e],kind=order,fill_value="extrapolate")
+        self.P_of_mu_q_low_dens = interp1d(mu_q_NM_vec[mask_P],P_NM_vec[mask_P],kind=order,fill_value="extrapolate")
+        self.rho_of_mu_q_low_dens = interp1d(mu_q_NM_vec[mask_rho],rho_NM_vec[mask_rho],kind=order,fill_value="extrapolate")
+        self.mu_e_of_mu_q_low_dens = interp1d(mu_q_NM_vec[mask_mu_e],mu_e_NM_vec[mask_mu_e],kind=order,fill_value="extrapolate")
+        self.xp_of_mu_q_low_dens = interp1d(mu_q_NM_vec[mask_xp],xp_NM_vec[mask_xp],kind=order,fill_value="extrapolate")
 
-        self.e_of_mu_q_low_dens = interp1d(mu_q_NM_vec[mask_e],e_NM_vec[mask_e],kind="quadratic",fill_value="extrapolate")
-        self.P_of_mu_q_low_dens = interp1d(mu_q_NM_vec[mask_P],P_NM_vec[mask_P],kind="quadratic",fill_value="extrapolate")
-        self.rho_of_mu_q_low_dens = interp1d(mu_q_NM_vec[mask_rho],rho_NM_vec[mask_rho],kind="quadratic",fill_value="extrapolate")
-        self.mu_e_of_mu_q_low_dens = interp1d(mu_q_NM_vec[mask_mu_e],mu_e_NM_vec[mask_mu_e],kind="quadratic",fill_value="extrapolate")
-        self.xp_of_mu_q_low_dens = interp1d(mu_q_NM_vec[mask_xp],xp_NM_vec[mask_xp],kind="quadratic",fill_value="extrapolate")
 
         #If no errors have occured so far, we try to create a kaon phase
         if(self.status=="Success"):
             if(self.mix_phase==True):
                 self.build_CFL_kaons_EoS()
+            else:
+                self.status="no mix"
             self.full_eos()
-        else:
-            print("Warning, status: "+str(self.status))
+        #else:
+            #q = 1
+            #print("Warning, status: "+str(self.status))
         #If no errors occured, create mass radius realtions, given the flag TOV is true
-
         if(self.TOV==True):
             if(self.status!="Fail"):
                 self.add_crust()
                 if(sum(np.isnan(self.v2_w_crust_vec))>0 or min(self.v2_w_crust_vec)<0):
                     self.status="Fail"
-                    self.R_vec = np.zeros(100)
-                    self.M_vec = np.zeros(100)
-                    self.Lambda_vec = np.zeros(100)
-                    self.P_c_vec = np.zeros(100)
-                    return
-                else:
-                    R_vec,M_vec,Lambda_vec,P_c_vec = TOV_Rahul.tov_solve(self.e_w_crust_vec,self.P_w_crust_vec,self.v2_w_crust_vec)
+            if(self.status!="Fail"):
+                self.rho_of_P = interp1d(self.P_w_crust_vec,self.rho_w_crust_vec,kind="linear")
+                try:
+                    R_vec,M_vec,Lambda_vec,P_c_vec = TOV_Rahul.tov_solve(self.e_w_crust_vec,self.P_w_crust_vec,self.v2_w_crust_vec,TOV_limit=self.TOV_limit)
                     self.R_vec = R_vec
                     self.M_vec = M_vec
                     self.Lambda_vec = Lambda_vec
                     self.P_c_vec = P_c_vec
+                    self.rho_c_vec = self.rho_of_P(P_c_vec)
+                    self.remove_unstable_end()
+                except:
+                    self.R_vec = np.zeros(100)
+                    self.M_vec = np.zeros(100)
+                    self.Lambda_vec = np.zeros(100)
+                    self.P_c_vec = np.zeros(100)
+                    self.rho_c_vec = np.zeros(100)
+                    self.status="Fail"
             else:
                 self.R_vec = np.zeros(100)
                 self.M_vec = np.zeros(100)
@@ -150,6 +160,9 @@ class CFL_EoS(object):
         return optimize.fsolve(self.fermi_momenta_functional_CFL,[pF_guess],args=(mu_q,))
 
     #Energy density of a free gas of quarks in the CFL phase
+   # def energy_density_free_quark_CFL(self,pF,mu_q,m_q):
+   #     return ((pF*mu_q**3)+(pF**3*mu_q)+m_q**4*np.log(mu_q/(pF+mu_q)))/(8*np.pi**2)
+
     def energy_density_free_quark_CFL(self,pF,m_q):
         if(m_q == 0):
             return pF**4/(4*np.pi**2)
@@ -204,10 +217,15 @@ class CFL_EoS(object):
             #Sanity check for pressure. Should be equal to P_CFL_vec
             self.P_CFL_test_vec[i] = self.pressure_CFL(self.mu_q_CFL_vec[i],self.pF_CFL_vec[i])
 
+        order = "linear"
         self.P_CFL_vec = self.mu_q_CFL_vec*self.rho_CFL_vec-self.e_CFL_vec
-        self.P_of_mu_q_CFL = interp1d(self.mu_q_CFL_vec,self.P_CFL_vec,kind="quadratic",fill_value="extrapolate")
-        self.e_of_mu_q_CFL = interp1d(self.mu_q_CFL_vec,self.e_CFL_vec,kind="quadratic",fill_value="extrapolate")
-        self.rho_of_mu_q_CFL = interp1d(self.mu_q_CFL_vec,self.rho_CFL_vec,kind="quadratic",fill_value="extrapolate")
+        self.P_of_mu_q_CFL = interp1d(self.mu_q_CFL_vec,self.P_CFL_vec,kind=order,fill_value="extrapolate")
+        self.e_of_mu_q_CFL = interp1d(self.mu_q_CFL_vec,self.e_CFL_vec,kind=order,fill_value="extrapolate")
+        self.rho_of_mu_q_CFL = interp1d(self.mu_q_CFL_vec,self.rho_CFL_vec,kind=order,fill_value="extrapolate")
+
+        #self.P_of_mu_q_CFL = interp1d(self.mu_q_CFL_vec,self.P_CFL_vec,kind="linear",fill_value="extrapolate")
+        #self.e_of_mu_q_CFL = interp1d(self.mu_q_CFL_vec,self.e_CFL_vec,kind="linear",fill_value="extrapolate")
+        #self.rho_of_mu_q_CFL = interp1d(self.mu_q_CFL_vec,self.rho_CFL_vec,kind="linear",fill_value="extrapolate")
         return
 
 
@@ -289,14 +307,6 @@ class CFL_EoS(object):
             return f1,f2,f3
 
         elif(self.eos_name=="RMF"):
-            S_guess = np.interp(rho,self.eos_low_dens.rho_vec,self.eos_low_dens.fields_vec[:,0])
-            V_guess = np.interp(rho,self.eos_low_dens.rho_vec,self.eos_low_dens.fields_vec[:,1])
-            B_guess = np.interp(rho,self.eos_low_dens.rho_vec,self.eos_low_dens.fields_vec[:,2])
-            D_guess = np.interp(rho,self.eos_low_dens.rho_vec,self.eos_low_dens.fields_vec[:,3])
-            fields_guess = np.array([S_guess,V_guess,B_guess,D_guess])
-            fields_guess[np.isnan(np.array(fields_guess))]=0
-            fields_guess = list(fields_guess)
-
             kFn_calc = self.eos_low_dens.get_kF(rho*(1-xp)*self.eos_low_dens.hbc3)
             kFp_calc = self.eos_low_dens.get_kF(rho*xp*self.eos_low_dens.hbc3)
             f6,f7,f8,f9 = self.eos_low_dens.mesons_kaons_functional(rho*self.eos_low_dens.hbc3,xp,kFn,kFp,fields)
@@ -314,6 +324,7 @@ class CFL_EoS(object):
     #Find the zeros of chemical_potential_electron_CFL_kaons_functional in order to
     #determine electron chemical potential, proton fraction, and total density
     def chemical_potential_electron_CFL_kaons(self,mu_q,pF,mu_e_xp_rho_guess):
+        #print(mu_e_xp_rho_guess)
         mu_e_xp_rho,info,status,message=(
         optimize.fsolve(self.chemical_potential_electron_CFL_kaons_functional,mu_e_xp_rho_guess,args=(mu_q,pF),full_output= True))
         return mu_e_xp_rho,status
@@ -321,28 +332,31 @@ class CFL_EoS(object):
     #Build EoS with mixed phase of CFL and kaons
     def build_CFL_kaons_EoS(self):
         self.mu_e_CFL_kaons_vec = np.zeros(self.N_kaons)
-        self.mu_e_CFL_kaons_vec_test = np.zeros(self.N_kaons)
         self.P_CFL_kaons_vec = np.zeros(self.N_kaons)
-        self.mu_q_CFL_kaons_vec = np.exp(np.linspace(np.log(self.mu_q_min),np.log(self.mu_q_max),self.N_kaons))
+        self.mu_q_CFL_kaons_vec = np.linspace(self.mu_q_min,self.mu_q_max,self.N_kaons)
         self.e_CFL_kaons_vec = np.zeros(self.N_kaons)
         self.rho_CFL_kaons_vec = np.zeros(self.N_kaons)
-        status = 1
+        self.pF_CFL_kaons_vec = np.zeros(self.N_kaons)
+        self.S_CFL_kaons_vec = np.zeros(self.N_kaons)
+        self.V_CFL_kaons_vec = np.zeros(self.N_kaons)
+        self.B_CFL_kaons_vec = np.zeros(self.N_kaons)
+        self.D_CFL_kaons_vec = np.zeros(self.N_kaons)
+        self.kFn_CFL_kaons_vec = np.zeros(self.N_kaons)
+        self.kFp_CFL_kaons_vec = np.zeros(self.N_kaons)
+        self.xp_CFL_kaons_vec = np.zeros(self.N_kaons)
+        self.rho_NM_CFL_kaons_vec = np.zeros(self.N_kaons)
         backtrack = True
         start = False
-        end = False
+        converge = False
         pF_guess = 10
-        self.mix_index_start = 0
-        self.mix_index_end = 0
-        fields_NM = [0,0,0,0]
         if(self.eos_name=="APR"):
             fields = None
-            fields_guess = [0,0,0,0]
         for i in range(self.N_kaons):
             #Check if the low density phase has lower pressure than the CFL phase
             #at zero density. If so, there is no CFL phase, and we return the
             #'no CFL' status
             if(self.P_CFL_vec[0]>self.eos_low_dens.P_vec[0]):
-                self.status=="no CFL"
+                self.status="no CFL"
                 return
 
             #Use the quark chemical potential to compute quark Fermi momenta pF
@@ -351,46 +365,48 @@ class CFL_EoS(object):
             pF = self.fermi_momenta_CFL(mu_q,pF_guess)[0]
             pF_guess = pF
             mu_e_NM = self.mu_e_of_mu_q_low_dens(mu_q)
-            if(start==False):
+            fields_NM = [10,-10,10,10]
+            if(converge==False):
                 xp_guess = self.xp_of_mu_q_low_dens(mu_q)
                 rho_guess = self.rho_of_mu_q_low_dens(mu_q)
                 kFn_guess = (rho_guess*3*np.pi**2)**(1/3)
                 kFp_guess = (xp_guess*rho_guess*3*np.pi**2)**(1/3)
                 mu_e_guess = mu_e_NM
                 [S_guess,V_guess,B_guess,D_guess]=fields_NM
-
             else:
                 if(self.eos_name == "RMF"):
-                    kFn_guess = kFn
-                    kFp_guess = kFp
-                    S_guess = S
-                    B_guess = B
-                    V_guess = V
-                    D_guess = D
-                else:
-                    kFn_guess = 0
-                    kFp_guess = 0
-                    S_guess = 0
-                    V_guess = 0
-                    B_guess = 0
-                    D_guess = 0
+                    kFn_guess = kFn_c
+                    kFp_guess = kFp_c
+                    S_guess = S_c
+                    B_guess = B_c
+                    V_guess = V_c
+                    D_guess = D_c
 
-                mu_e_guess = mu_e
-                xp_guess = xp
-                rho_guess = rho_NM
+                mu_e_guess = mu_e_c
+                xp_guess = xp_c
+                rho_guess = rho_NM_c
 
             if(self.eos_name == "APR"):
                 mu_e_xp_rho_guess = [mu_e_guess,xp_guess,rho_guess]
             elif(self.eos_name == "RMF"):
                 mu_e_xp_rho_guess = [mu_e_guess,xp_guess,rho_guess,kFn_guess,kFp_guess,S_guess,V_guess,B_guess,D_guess]
             mu_e_xp_rho,status = self.chemical_potential_electron_CFL_kaons(mu_q,pF,mu_e_xp_rho_guess)
-            if(status == 1 and mu_e_xp_rho[0]>0 and mu_e_xp_rho[0]<mu_e_NM):
+            if(status == 1):
+                converge=True
+                if(self.eos_name == "APR"):
+                    mu_e_c,xp_c,rho_NM_c = mu_e_xp_rho
+                elif(self.eos_name == "RMF"):
+                    mu_e_c,xp_c,rho_NM_c,kFn_c,kFp_c,S_c,V_c,B_c,D_c = mu_e_xp_rho
+            else:
+                converge=False
+
+
+            if(converge==True and mu_e_xp_rho[0]>0 and mu_e_xp_rho[0]<mu_e_NM and self.rho_of_mu_q_low_dens(mu_q)>0.16):
                 start = True
                 if(self.eos_name == "APR"):
                     mu_e,xp,rho_NM = mu_e_xp_rho
                 elif(self.eos_name == "RMF"):
                     mu_e,xp,rho_NM,kFn,kFp,S,V,B,D = mu_e_xp_rho
-
             else:
                 mu_e,xp,rho_NM,kFn,kFp,S,V,B,D = [0,0,0,0,0,0,0,0,0]
 
@@ -417,7 +433,7 @@ class CFL_EoS(object):
                         +self.eos_low_dens.lepton_energy_density(mu_e,self.m_e)
                         +self.eos_low_dens.lepton_energy_density(mu_e,self.m_mu))
             elif(self.eos_name == "RMF"):
-                fields_NM = self.eos_low_dens.solve_mesons(rho_guess*self.eos_low_dens.hbc3,xp_guess,[S,V,B,D])
+                fields_NM = [S,V,B,D]
                 e_NM = self.eos_low_dens.e_QHD(rho_NM*self.eos_low_dens.hbc3,xp,pF_e,*fields_NM)/self.eos_low_dens.hbc3
             if(mu_e==0):
                 if(start==False):
@@ -427,130 +443,134 @@ class CFL_EoS(object):
             else:
                 chi = (xp*rho_NM-rho_e-rho_mu)/(xp*rho_NM+self.kaon_density_CFL(mu_q,mu_e))
 
-
             rho_CFL_kaons = self.density_CFL(mu_q,pF)+rho_e+rho_mu
             self.e_CFL_kaons_vec[i] = (1-chi)*e_NM + chi*e_CFL_kaons
             self.rho_CFL_kaons_vec[i] = rho_NM*(1-chi)+chi*rho_CFL_kaons
+            self.pF_CFL_kaons_vec[i] = pF
+            self.xp_CFL_kaons_vec[i] = xp
+            self.rho_NM_CFL_kaons_vec[i] = rho_NM
+            self.B_CFL_kaons_vec[i] = B
+            self.D_CFL_kaons_vec[i] = D
+            self.V_CFL_kaons_vec[i] = V
+            self.S_CFL_kaons_vec[i] = S
+            self.kFn_CFL_kaons_vec[i] = kFn
+            self.kFp_CFL_kaons_vec[i] = kFp
+
+
+
+
+
 
             #Code between horisontal dashed line walks backwards to add more points to CFL kaon phase
             #in case convergence did not go well initially
             #-----------------------------------------------
-            if(backtrack==True and start==True):
-                backtrack = False
-                k=0
-                pF_test = pF
-                mu_e_test = mu_e
-                xp_test = xp
-                rho_NM_test = rho_NM
-                S_test = S
-                V_test = V
-                B_test = B
-                D_test = D
-                kFn_test=kFn
-                kFp_test=kFp
-                try:
-                    while(self.mu_e_CFL_kaons_vec[i-k+1]<mu_e_NM):
-                        mu_q_test = self.mu_q_CFL_kaons_vec[i-k]
-                        pF_test = self.fermi_momenta_CFL(mu_q_test,pF_test)[0]
+        ii = 0
+        k=0
+        for j in range(self.N_kaons):
+            if(self.mu_e_CFL_kaons_vec[self.N_kaons-j-1]>0):
+                if(j!=0):
+                    ii = self.N_kaons-j-1
+                    break
+                else:
+                    ii = self.N_kaons-j-2
+                    break
+        if(True):
+            backtrack = False
+            pF_test = self.pF_CFL_kaons_vec[ii]
+            mu_e_test = self.mu_e_CFL_kaons_vec[ii]
+            xp_test = self.xp_CFL_kaons_vec[ii]
+            rho_NM_test = self.rho_NM_CFL_kaons_vec[ii]
+            S_test = self.S_CFL_kaons_vec[ii]
+            V_test = self.V_CFL_kaons_vec[ii]
+            B_test = self.B_CFL_kaons_vec[ii]
+            D_test = self.D_CFL_kaons_vec[ii]
+            kFn_test=self.kFn_CFL_kaons_vec[ii]
+            kFp_test=self.kFp_CFL_kaons_vec[ii]
+            mu_q_test = self.mu_q_CFL_kaons_vec[ii]
 
-                        fields_guess = [S_test,V_test,B_test,D_test]
-                        if(self.eos_name == "APR"):
-                            mu_e_xp_rho_guess = [mu_e_test,xp_test,rho_NM_test]
-                        elif(self.eos_name == "RMF"):
-                            mu_e_xp_rho_guess = [mu_e_test,xp_guess,rho_NM_test,kFn_test,kFp_test,S_test,V_test,B_test,D_test]
-                        mu_e_xp_rho,status = self.chemical_potential_electron_CFL_kaons(mu_q_test,pF_test,mu_e_xp_rho_guess)
-                        if(self.eos_name == "APR"):
-                             mu_e_test,xp_test,rho_NM_test=mu_e_xp_rho
-                        elif(self.eos_name == "RMF"):
-                            mu_e_test,xp_test,rho_NM_test,kFn_test,kFp_test,S_test,V_test,B_test,D_test=mu_e_xp_rho
+            while(self.mu_e_CFL_kaons_vec[ii-k+1]<self.mu_e_of_mu_q_low_dens(mu_q_test)):
+                mu_q_test = self.mu_q_CFL_kaons_vec[ii-k]
+                pF_test = self.fermi_momenta_CFL(mu_q_test,pF_test)[0]
 
-                        self.mu_e_CFL_kaons_vec[i-k]= mu_e_test
-                        self.P_CFL_kaons_vec[i-k] = self.pressure_CFL_kaons(mu_q_test,pF_test,mu_e_test)
+                if(self.eos_name == "APR"):
+                    mu_e_xp_rho_guess = [mu_e_test,xp_test,rho_NM_test]
+                elif(self.eos_name == "RMF"):
+                    mu_e_xp_rho_guess = [mu_e_test,xp_test,rho_NM_test,kFn_test,kFp_test,S_test,V_test,B_test,D_test]
+                mu_e_xp_rho,status = self.chemical_potential_electron_CFL_kaons(mu_q_test,pF_test,mu_e_xp_rho_guess)
 
-                        e_CFL_kaons_test = (self.energy_density_CFL(mu_q_test,pF_test)+self.energy_density_CFL_kaons(mu_q_test,mu_e_test))
+                if(self.eos_name == "APR"):
+                     mu_e_test,xp_test,rho_NM_test=mu_e_xp_rho
+                elif(self.eos_name == "RMF"):
+                    mu_e_test,xp_test,rho_NM_test,kFn_test,kFp_test,S_test,V_test,B_test,D_test=mu_e_xp_rho
+
+                self.mu_e_CFL_kaons_vec[ii-k]= mu_e_test
+                self.P_CFL_kaons_vec[ii-k] = self.pressure_CFL_kaons(mu_q_test,pF_test,mu_e_test)
+
+                e_CFL_kaons_test = (self.energy_density_CFL(mu_q_test,pF_test)+self.energy_density_CFL_kaons(mu_q_test,mu_e_test))
+
+                if(mu_e_test>self.m_e):
+                    pF_e_test = np.sqrt(mu_e_test**2-self.m_e**2)
+                else:
+                    pF_e_test = 0
+
+                if(mu_e_test>self.m_mu):
+                    pF_mu_test = np.sqrt(mu_e_test**2-self.m_mu**2)
+                else:
+                    pF_mu_test = 0
+
+                rho_e_test = pF_e_test**3/(3*np.pi**2*self.hc**3)
+                rho_mu_test = pF_mu_test**3/(3*np.pi**2*self.hc**3)
+
+                if(self.eos_name == "APR"):
+                    e_NM_test = (self.eos_low_dens.e_functional(rho_NM_test,xp_test)[1]
+                            +self.eos_low_dens.lepton_energy_density(mu_e_test,self.m_e)
+                            +self.eos_low_dens.lepton_energy_density(mu_e_test,self.m_mu))
+
+                elif(self.eos_name == "RMF"):
+                    fields_NM_test = [S_test,V_test,B_test,D_test]
+                    e_NM_test = self.eos_low_dens.e_QHD(rho_NM_test*self.eos_low_dens.hbc3,xp_test,pF_e_test,*fields_NM_test)/self.eos_low_dens.hbc3
 
 
-                        if(mu_e>self.m_e):
-                            pF_e_test = np.sqrt(mu_e_test**2-self.m_e**2)
-                        else:
-                            pF_e_test = 0
-
-                        if(mu_e_test>self.m_mu):
-                            pF_mu_test = np.sqrt(mu_e_test**2-self.m_mu**2)
-                        else:
-                            pF_mu_test = 0
-                        rho_e_test = pF_e_test**3/(3*np.pi**2*self.hc**3)
-                        rho_mu_test = pF_mu_test**3/(3*np.pi**2*self.hc**3)
-
-                        if(self.eos_name == "APR"):
-                            e_NM_test = (self.eos_low_dens.e_functional(rho_NM_test,xp_test)[1]
-                                    +self.eos_low_dens.lepton_energy_density(mu_e_test,self.m_e)
-                                    +self.eos_low_dens.lepton_energy_density(mu_e_test,self.m_mu))
-
-                        elif(self.eos_name == "RMF"):
-                            fields_NM_test = self.eos_low_dens.solve_mesons(rho_NM_test*self.eos_low_dens.hbc3,xp_test,fields_guess)
-                            e_NM_test = self.eos_low_dens.e_QHD(rho_NM_test*self.eos_low_dens.hbc3,xp_test,pF_e_test,*fields_guess)/self.eos_low_dens.hbc3
-                            [S_test,V_test,B_test,D_test]=fields_NM
-
-                        if(mu_e==0):
-                            chi_test = 1
-                        else:
-                            chi_test = (xp_test*rho_NM_test-rho_e_test-rho_mu_test)/(xp_test*rho_NM_test+self.kaon_density_CFL(mu_q_test,mu_e_test))
-                        chi_test = max(0,chi_test)
-                        rho_CFL_kaons_test = self.density_CFL(mu_q_test,pF_test)+rho_e_test+rho_mu_test
-                        self.e_CFL_kaons_vec[i-k] = (1-chi_test)*e_NM_test + chi_test*e_CFL_kaons_test
-                        self.rho_CFL_kaons_vec[i-k] = rho_NM_test*(1-chi_test)+chi_test*rho_CFL_kaons_test
-                        k+=1
-                except:
-                    self.status="no CFL"
-                    return
-                self.mix_index_start = i-k+1
+                if(mu_e_test==0):
+                    chi_test = 1
+                else:
+                    chi_test = (xp_test*rho_NM_test-rho_e_test-rho_mu_test)/(xp_test*rho_NM_test+self.kaon_density_CFL(mu_q_test,mu_e_test))
+                rho_CFL_kaons_test = self.density_CFL(mu_q_test,pF_test)+rho_e_test+rho_mu_test
+                self.e_CFL_kaons_vec[ii-k] = (1-chi_test)*e_NM_test + chi_test*e_CFL_kaons_test
+                self.rho_CFL_kaons_vec[ii-k] = rho_NM_test*(1-chi_test)+chi_test*rho_CFL_kaons_test
+                k+=1
+        if(k==0):
+            self.mix_index_start = ii
+        else:
+            self.mix_index_start = ii-k+1
 
         #Create interpolation tables for the kaon phase from infinite quark chemical potential
         #and up until the transition. Extrapolate to make it easier to find transition point.
-        try:
-            self.mu_e_of_mu_q_kaons = (interp1d(self.mu_q_CFL_kaons_vec[self.mix_index_start:],
+        order = "linear"
+        self.mu_e_of_mu_q_kaons = (interp1d(self.mu_q_CFL_kaons_vec[self.mix_index_start:],
                                             self.mu_e_CFL_kaons_vec[self.mix_index_start:],
-                                            kind='quadratic',fill_value="extrapolate"))
-        except:
-            self.mu_e_of_mu_q_kaons = (interp1d(self.mu_q_CFL_kaons_vec[self.mix_index_start:],
-                                            self.mu_e_CFL_kaons_vec[self.mix_index_start:],
-                                            kind='linear',fill_value="extrapolate"))
+                                            kind=order,fill_value="extrapolate"))
 
-        try:
-            self.e_of_mu_q_kaons = interp1d(self.mu_q_CFL_kaons_vec[self.mix_index_start:],
+
+        self.e_of_mu_q_kaons = (interp1d(self.mu_q_CFL_kaons_vec[self.mix_index_start:],
                                         self.e_CFL_kaons_vec[self.mix_index_start:],
-                                        kind="quadratic",fill_value="extrapolate")
-        except:
-            self.e_of_mu_q_kaons = interp1d(self.mu_q_CFL_kaons_vec[self.mix_index_start:],
-                                        self.e_CFL_kaons_vec[self.mix_index_start:],
-                                        kind="linear",fill_value="extrapolate")
+                                        kind=order,fill_value="extrapolate"))
 
 
-        try:
-            self.P_of_mu_q_kaons = interp1d(self.mu_q_CFL_kaons_vec[self.mix_index_start:],
+        self.P_of_mu_q_kaons = (interp1d(self.mu_q_CFL_kaons_vec[self.mix_index_start:],
                                         self.P_CFL_kaons_vec[self.mix_index_start:],
-                                        kind="quadratic",fill_value="extrapolate")
-        except:
-            self.P_of_mu_q_kaons = interp1d(self.mu_q_CFL_kaons_vec[self.mix_index_start:],
-                                        self.P_CFL_kaons_vec[self.mix_index_start:],
-                                        kind="linear",fill_value="extrapolate")
+                                        kind=order,fill_value="extrapolate"))
 
 
-        try:
-            self.rho_of_mu_q_kaons = interp1d(self.mu_q_CFL_kaons_vec[self.mix_index_start:],
+        self.rho_of_mu_q_kaons = (interp1d(self.mu_q_CFL_kaons_vec[self.mix_index_start:],
                                         self.rho_CFL_kaons_vec[self.mix_index_start:],
-                                        kind="quadratic",fill_value="extrapolate")
-        except:
-            self.rho_of_mu_q_kaons = interp1d(self.mu_q_CFL_kaons_vec[self.mix_index_start:],
-                                        self.rho_CFL_kaons_vec[self.mix_index_start:],
-                                        kind="linear",fill_value="extrapolate")
+                                        kind=order,fill_value="extrapolate"))
+
         for i in range(self.mix_index_start):
             mu_q = self.mu_q_CFL_kaons_vec[i]
             self.mu_e_CFL_kaons_vec[i] = self.mu_e_of_mu_q_kaons(mu_q)
             self.e_CFL_kaons_vec[i] = self.e_of_mu_q_kaons(mu_q)
             self.P_CFL_kaons_vec[i] = self.P_of_mu_q_kaons(mu_q)
-
 
         return
 
@@ -574,8 +594,8 @@ class CFL_EoS(object):
         return mu_q_intersect[0]
 
     def find_transition_mu_q_to_mixphase_functional(self,mu_q):
+        #return self.P_of_e_kaons(mu_q)-self.P_of_e_low_dens(mu_q)
         return (self.mu_e_of_mu_q_kaons(mu_q)-self.mu_e_of_mu_q_low_dens(mu_q))
-
     #Finds the transition density from neutron matter to mixed phase by solving for zeros of find_transition_mu_q_to_mixphase_functional
     def find_transition_mu_q_to_mixphase(self,mu_q_guess):
         mu_q_guess = np.array(mu_q_guess)
@@ -601,7 +621,7 @@ class CFL_EoS(object):
 
     #Compute full equation of state with Apr03 or RMF at low density, kaon with CFL mixed phase, and pure CFL
     def full_eos(self):
-        self.mu_q_vec = np.exp(np.linspace(np.log(self.mu_q_min),np.log(self.mu_q_max),self.N))
+        self.mu_q_vec = np.linspace(self.mu_q_min,self.mu_q_max,self.N)
         self.P_vec = np.zeros(self.N)
         self.e_vec = np.zeros(self.N)
         self.rho_vec = np.zeros(self.N)
@@ -626,7 +646,6 @@ class CFL_EoS(object):
                     if(self.actual_transition_index==self.N-1):
                         self.status="no CFL"
 
-
         if(self.status == "Fail" or self.status == "no CFL"):
             self.P_vec = self.eos_low_dens.P_vec
             self.e_vec = self.eos_low_dens.e_vec
@@ -634,8 +653,10 @@ class CFL_EoS(object):
             self.mu_q_vec = self.eos_low_dens.mu_n_vec/3
             self.mu_e_vec = self.eos_low_dens.mu_e_vec
             self.v2_vec = np.gradient(self.P_vec,self.e_vec,edge_order=2)
-            print("Warning in computing NM/kaon transition. Status: "+str(self.status))
+            #print("Warning in computing NM/kaon transition. Status: "+str(self.status))
             return
+
+
         #If there is not a mixed phase (which either happens by design
         #or when solving for the transition position fails), then
         #only compute transition from low density phase to pure CFL
@@ -662,6 +683,19 @@ class CFL_EoS(object):
                         rho_transition = self.rho_of_mu_q_low_dens(self.mu_q_transition)
                         self.actual_transition_index = (abs(self.mu_q_vec-self.mu_q_transition)).argmin()
 
+                        self.mu_q_vec[self.actual_transition_index] = self.mu_q_transition
+                        self.P_vec[self.actual_transition_index]=self.P_of_mu_q_low_dens(self.mu_q_transition)
+                        self.e_vec[self.actual_transition_index]=self.e_of_mu_q_low_dens(self.mu_q_transition)
+                        self.rho_vec[self.actual_transition_index]=self.rho_of_mu_q_low_dens(self.mu_q_transition)
+                        self.mu_e_vec[self.actual_transition_index]=0
+
+                        #self.mu_q_vec[self.actual_transition_index+1] = self.mu_q_transition+1e-6
+                        #self.P_vec[self.actual_transition_index]=self.P_of_mu_q_CFL(self.mu_q_transition)
+                        #self.e_vec[self.actual_transition_index]=self.e_of_mu_q_CFL(self.mu_q_transition)
+                        #self.rho_vec[self.actual_transition_index]=self.rho_of_mu_q_CFL(self.mu_q_transition)
+                        #self.mu_e_vec[self.actual_transition_index]=0
+
+
                         if(rho_transition<0.15 or self.actual_transition_index==self.N-1):
                             self.status="no CFL"
                             self.P_vec = self.eos_low_dens.P_vec
@@ -670,7 +704,7 @@ class CFL_EoS(object):
                             self.mu_q_vec = self.eos_low_dens.mu_n_vec/3
                             self.mu_e_vec = self.eos_low_dens.mu_e_vec
                             self.v2_vec = np.gradient(self.P_vec,self.e_vec,edge_order=2)
-                            print("Warning in computing no mix CFL. Status: "+str(self.status))
+                            #print("Warning in computing no mix CFL. Status: "+str(self.status))
                             return
                     self.rho_vec[i] = rho_CFL
                     self.e_vec[i] = e_CFL
@@ -707,32 +741,45 @@ class CFL_EoS(object):
 
             #Add exact transition point to mix phase
             self.mu_q_vec[self.actual_transition_index] = self.mu_q_transition
-            self.P_vec[self.actual_transition_index]=self.P_of_mu_q_low_dens(self.mu_q_transition)
-            self.e_vec[self.actual_transition_index]=self.e_of_mu_q_low_dens(self.mu_q_transition)
-            self.rho_vec[self.actual_transition_index]=self.rho_of_mu_q_low_dens(self.mu_q_transition)
-            self.mu_e_vec[self.actual_transition_index]=self.mu_e_of_mu_q_low_dens(self.mu_q_transition)
+            self.P_vec[self.actual_transition_index]=self.P_of_mu_q_kaons(self.mu_q_transition)
+            self.e_vec[self.actual_transition_index]=self.e_of_mu_q_kaons(self.mu_q_transition)
+            self.rho_vec[self.actual_transition_index]=self.rho_of_mu_q_kaons(self.mu_q_transition)
+            self.mu_e_vec[self.actual_transition_index]=self.mu_e_of_mu_q_kaons(self.mu_q_transition)
+
+            if(self.rho_vec[self.actual_transition_index]<0.15):
+                self.status = "no CFL"
+                self.P_vec = self.eos_low_dens.P_vec
+                self.e_vec = self.eos_low_dens.e_vec
+                self.rho_vec = self.eos_low_dens.rho_vec
+                self.mu_q_vec = self.eos_low_dens.mu_n_vec/3
+                self.mu_e_vec = self.eos_low_dens.mu_e_vec
+                self.v2_vec = np.gradient(self.P_vec,self.e_vec,edge_order=2)
+                #print("Warning in computing the speed of sound. Status:  "+str(self.status))
+                return
+
+
+        #When computing the speed of sound, change the last point to not make speed of sound discontinous
+        #P_vec_v2 = self.P_vec
+        #e_vec_v2 = self.e_vec
+        #P_vec_v2[self.actual_transition_index] = self.P_of_mu_q_kaons(self.mu_q_transition)
+        #e_vec_v2[self.actual_transition_index] = self.e_of_mu_q_kaons(self.mu_q_transition)
+
 
         #The code below joins the low density and the high density phases
         #together around the transition point found above.
+        #print(self.actual_transition_index)
         self.e_vec = self.e_vec[self.actual_transition_index:]
         self.rho_vec = self.rho_vec[self.actual_transition_index:]
         self.mu_q_vec = self.mu_q_vec[self.actual_transition_index:]
         self.P_vec = self.P_vec[self.actual_transition_index:]
         self.mu_e_vec = self.mu_e_vec[self.actual_transition_index:]
+        #P_vec_v2 = P_vec_v2[self.actual_transition_index:]
+        #e_vec_v2 = e_vec_v2[self.actual_transition_index:]
+        #self.v2_vec = np.gradient(P_vec_v2,e_vec_v2,edge_order=2)
         self.v2_vec = np.gradient(self.P_vec,self.e_vec,edge_order=2)
-
-        if(sum(np.isnan(self.v2_vec))>0 or min(self.v2_vec)<0):
+        if(sum(np.isnan(self.v2_vec))>0 or min(self.v2_vec)<0 or min(self.P_vec)<0):
             self.status="Fail"
 
-        if(self.status!="Success"):
-            self.P_vec = self.eos_low_dens.P_vec
-            self.e_vec = self.eos_low_dens.e_vec
-            self.rho_vec = self.eos_low_dens.rho_vec
-            self.mu_q_vec = self.eos_low_dens.mu_n_vec/3
-            self.mu_e_vec = self.eos_low_dens.mu_e_vec
-            self.v2_vec = np.gradient(self.P_vec,self.e_vec,edge_order=2)
-            print("Warning in computing the speed of sound. Status:  "+str(self.status))
-            return
 
         p=self.eos_low_dens.P_vec[0]
         i=0
@@ -743,6 +790,7 @@ class CFL_EoS(object):
         rho_add = []
         mu_e_add = []
         while(p<p_min):
+            p=self.eos_low_dens.P_vec[i]
             P_add.append(p)
             e = self.eos_low_dens.e_vec[i]
             e_add.append(e)
@@ -753,8 +801,18 @@ class CFL_EoS(object):
             mu_e = self.eos_low_dens.mu_e_vec[i]
             mu_e_add.append(mu_e)
             i+=1
-            p=self.eos_low_dens.P_vec[i]
+            if(i==len(self.eos_low_dens.P_vec)):
+                self.status="Fail"
+                break
         index0 = i
+
+        #mu_min = max([self.mu_q_transition*0.999,mu_q_add[-1]])
+        #mu_q_add[-1] = mu_min
+        #P_add[-1]=self.P_of_mu_q_low_dens(mu_min)
+        #e_add[-1]=self.e_of_mu_q_low_dens(mu_min)
+        #rho_add[-1]=self.rho_of_mu_q_low_dens(mu_min)
+        #mu_e_add[-1]=self.mu_e_of_mu_q_low_dens(mu_min)
+
 
         self.P_vec = np.concatenate((np.array(P_add),self.P_vec))
         self.e_vec = np.concatenate((np.array(e_add),self.e_vec))
@@ -766,11 +824,26 @@ class CFL_EoS(object):
         elif(len(P_add)>0):
             self.v2_vec = np.concatenate((np.gradient(np.array(P_add),np.array(e_add),edge_order=1),self.v2_vec))
 
+        #print(self.v2_vec[self.v2_vec>0.1],self.v2_vec[self.v2_vec<0.1])
+
+        if(self.status == "Fail" or self.status == "no CFL"):
+            self.P_vec = self.eos_low_dens.P_vec
+            self.e_vec = self.eos_low_dens.e_vec
+            self.rho_vec = self.eos_low_dens.rho_vec
+            self.mu_q_vec = self.eos_low_dens.mu_n_vec/3
+            self.mu_e_vec = self.eos_low_dens.mu_e_vec
+            self.v2_vec = np.gradient(self.P_vec,self.e_vec,edge_order=2)
+            #print("Warning in computing NM/kaon transition. Status: "+str(self.status))
+            return
+
+
         if(self.status!="Success"):
             if(self.status=="no mix"):
-                self.v2_vec[index0]=0
-                self.v2_vec[index0-1]=0
-            print("Warning, status: "+str(self.status))
+                self.v2_vec[index0]=1e-6
+                self.v2_vec[index0-1]=1e-6
+            #print("Warning, status: "+str(self.status))
+
+
         return
 
     def add_crust(self):
@@ -789,12 +862,24 @@ class CFL_EoS(object):
                 rho_crust.append(rho)
             else:
                 break
+
         v2_crust = np.gradient(np.array(P_crust),np.array(e_crust),edge_order=2)
         self.P_w_crust_vec = np.concatenate((np.array(P_crust),self.P_vec))[1:]
         self.e_w_crust_vec = np.concatenate((np.array(e_crust),self.e_vec))[1:]
         self.rho_w_crust_vec = np.concatenate((np.array(rho_crust),self.rho_vec))[1:]
         self.v2_w_crust_vec = np.concatenate((v2_crust,self.v2_vec))[1:]
 
-
+    def remove_unstable_end(self):
+        M = 0
+        NN = len(self.M_vec)
+        for i in range(NN):
+            if(self.M_vec[NN-i-1]<=M):
+                self.M_vec = self.M_vec[:NN-i+1]
+                self.R_vec = self.R_vec[:NN-i+1]
+                self.Lambda_vec = self.Lambda_vec[:NN-i+1]
+                self.P_c_vec = self.P_c_vec[:NN-i+1]
+                return
+            M = self.M_vec[NN-i-1]
+        return
 
 
