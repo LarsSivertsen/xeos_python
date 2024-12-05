@@ -103,7 +103,8 @@ def testing_CFL(B=190
                 ,plot_original_phases=False
                 ,RMF_filename="FSUGarnet.inp"
                 ,mix_phase=True
-                ,figsize=(10,10)):
+                ,figsize=(10,10)
+                ,TOV_limit = True):
     '''
     Test the CFL phase in combination with differnt low density phases.
     When the flag plot_original_phases is set to True, we plot results
@@ -131,7 +132,8 @@ def testing_CFL(B=190
                                  ,c=c
                                  ,eos_name=eos_name
                                  ,RMF_filename="FSUGold_MARK.inp"
-                                 ,mix_phase=mix_phase)
+                                 ,mix_phase=mix_phase
+                                 ,TOV_limit=TOV_limit)
 
         print("Time spent:", time.perf_counter()-time_0)
         title="Waleca parameters, "+title
@@ -179,7 +181,7 @@ def testing_CFL(B=190
     plt.plot(eos.mu_q_CFL_vec,eos.P_CFL_vec,label = "$P_{CFL}$",color = "green")
     if(mix_phase==True):
         plt.plot(eos.mu_q_CFL_kaons_vec,eos.P_CFL_kaons_vec,label = "$P_{CFL}^k$",color="orange")
-        plt.plot(eos.mu_q_CFL_kaons_vec,eos.mu_e_CFL_kaons_vec,'--',label = "$\\mu_e^k$",color="black")
+        plt.plot(eos.mu_q_CFL_kaons_vec,eos.mu_e_CFL_kaons_vec,'.',label = "$\\mu_e^k$",color="black")
     plt.plot(eos.eos_low_dens.mu_n_vec/3,eos.eos_low_dens.mu_e_vec,label = "$\\mu_e$",color="black")
     plt.plot(eos.eos_low_dens.mu_n_vec/3,eos.eos_low_dens.P_vec,label = "$P_{NM}$",color="blue")
     plt.plot(eos.mu_q_vec,eos.P_vec,'--',label = "P",color="red")
@@ -216,13 +218,14 @@ def testing_total_eos(B=190
                      ,figsize=(10,10)
                      ,plot_low_dens=True
                      ,skip_repeating_low_dens=True
-                     ,TOV=False):
+                     ,TOV=False
+                     ,TOV_limit=False):
 
     eos_name = "RMF"
     time_0 = time.perf_counter()
     variable_names = ["B","Delta","m_s","c"]
     if(skip_repeating_low_dens):
-        eos_low_dens = RMF_eos.EOS_set(N=N_low_dens,rho_max=rho_max,RMF_filename=RMF_filename,TOV=TOV)
+        eos_low_dens = RMF_eos.EOS_set(N=N_low_dens,rho_max=rho_max,RMF_filename=RMF_filename,TOV=TOV,TOV_limit=TOV_limit)
     else:
         eos_low_dens=None
     var_vec = np.linspace(variable_range[0],variable_range[1],N_variable)
@@ -243,7 +246,8 @@ def testing_total_eos(B=190
                                   ,RMF_filename=RMF_filename
                                   ,mix_phase=mix_phase
                                   ,eos_low_dens=eos_low_dens
-                                  ,TOV=TOV)
+                                  ,TOV=TOV
+                                  ,TOV_limit=TOV_limit)
                for B in var_vec
                ]
 
@@ -470,4 +474,102 @@ def test_write_and_read_MR_to_file(filename="runs/tests/MR_files/test.txt",B=190
     plt.ylabel("$\\Lambda$")
 
     plt.show()
+
+
+def test_few_different_EoS_w_wo_kaons(B_vec
+                                    ,Delta_vec
+                                    ,m_s_vec
+                                    ,c_vec
+                                    ,N=100
+                                    ,N_kaons=100
+                                    ,N_low_dens=100
+                                    ,eos_name="RMF"
+                                    ,RMF_filename="FSUGarnet.inp"
+                                    ,TOV_limit=True
+                                    ,TOV=True):
+
+    equations_of_state = []
+    rho_max = 6.4
+    eos_low_dens = RMF_eos.EOS_set(N=N_low_dens,rho_max=rho_max,RMF_filename=RMF_filename,TOV=TOV,TOV_limit=TOV_limit)
+    for B,Delta,m_s,c in zip(B_vec,Delta_vec,m_s_vec,c_vec):
+
+        eos_kaons = exotic_eos.CFL_EoS(B
+                          ,Delta
+                          ,m_s
+                          ,N=N
+                          ,N_kaons=N_kaons
+                          ,N_low_dens=N_low_dens
+                          ,c=c
+                          ,eos_name=eos_name
+                          ,RMF_filename=RMF_filename
+                          ,mix_phase=True
+                          ,eos_low_dens=eos_low_dens
+                          ,TOV=TOV)
+
+        eos_no_mix = exotic_eos.CFL_EoS(B
+                          ,Delta
+                          ,m_s
+                          ,N=N
+                          ,N_kaons=N_kaons
+                          ,N_low_dens=N_low_dens
+                          ,c=c
+                          ,eos_name=eos_name
+                          ,RMF_filename=RMF_filename
+                          ,mix_phase=False
+                          ,eos_low_dens=eos_low_dens
+                          ,TOV=TOV)
+
+        equations_of_state.append([eos_kaons,eos_no_mix])
+
+        plt.figure("MR")
+        plt.plot(eos_kaons.R_vec,eos_kaons.M_vec,"r")
+        plt.plot(eos_no_mix.R_vec,eos_no_mix.M_vec,"k--")
+        plt.figure("P of e")
+        plt.plot(eos_kaons.e_vec,eos_kaons.P_vec,"r")
+        plt.plot(eos_no_mix.e_vec,eos_no_mix.P_vec,"k--")
+        plt.figure("P of rho")
+        plt.plot(eos_kaons.rho_vec,eos_kaons.P_vec,"r")
+        plt.plot(eos_no_mix.rho_vec,eos_no_mix.P_vec,"k--")
+        plt.figure("v2 of rho")
+        plt.plot(eos_kaons.rho_vec,eos_kaons.v2_vec,"r")
+        plt.plot(eos_no_mix.rho_vec,eos_no_mix.v2_vec,"k--")
+
+
+    plt.figure("MR")
+    plt.xlabel("R[km]")
+    plt.ylabel("M[$M_\odot$]")
+    plt.xlim(8,15)
+    plt.ylim(0,2.2)
+    plt.plot([],[],"r",label="kaons")
+    plt.plot([],[],"k--",label="no mix")
+    plt.legend()
+    plt.figure("P of e")
+    plt.xlabel("e[MeV/fm$^3$]")
+    plt.ylabel("P[MeV/fm$^3$]")
+    plt.xlim(0,1250)
+    plt.ylim(0,250)
+    plt.plot([],[],"r",label="kaons")
+    plt.plot([],[],"k--",label="no mix")
+    plt.legend()
+    plt.figure("P of rho")
+    plt.xlabel("$\\rho$[fm$^{-3}$]")
+    plt.ylabel("P[MeV/fm^3]")
+    plt.xlim(0,3)
+    plt.ylim(0,150)
+    plt.plot([],[],"r",label="kaons")
+    plt.plot([],[],"k--",label="no mix")
+    plt.legend()
+    plt.figure("v2 of rho")
+    plt.xlabel("$\\rho$[fm$^{-3}$]")
+    plt.ylabel("$v^2$[1]")
+    plt.xlim(0,3)
+    plt.ylim(-0.1,0.5)
+    plt.plot([],[],"r",label="kaons")
+    plt.plot([],[],"k--",label="no mix")
+    plt.legend()
+    plt.show()
+    return equations_of_state
+
+
+
 

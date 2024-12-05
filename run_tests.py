@@ -57,7 +57,7 @@ Input parameters:
                             use parameters that are more similar to this Waleca model
 '''
 #tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="APR")
-#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=100,N_kaons=100,N_low_dens=100,eos_name="RMF")
+#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.3,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF")
 #tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.3,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF")
 #tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF",mix_phase=False)
 #tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.3,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF",mix_phase=False)
@@ -88,10 +88,14 @@ Input parameters:
                             use parameters that are more similar to this Waleca model
 
 '''
-#tst.testing_total_eos(variable="B",variable_range=[175,220],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
-#tst.testing_total_eos(variable="Delta",variable_range=[10,150],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
-#tst.testing_total_eos(variable="m_s",variable_range=[50,250],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
-tst.testing_total_eos(variable="c",B=200,variable_range=[0.8,0.9],N_variable=5,N=100,N_kaons=100,N_low_dens=100,TOV=True)
+tst.testing_total_eos(variable="B",variable_range=[170,210],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True,TOV_limit=False)
+tst.testing_total_eos(variable="Delta",variable_range=[50,150],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
+tst.testing_total_eos(variable="m_s",variable_range=[50,250],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
+tst.testing_total_eos(variable="c",B=200,variable_range=[0.,0.3],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
+#tst.testing_total_eos(variable="c",B=200,variable_range=[0.4,0.4],N_variable=1,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
+#tst.testing_total_eos(variable="c",B=200,variable_range=[0.4,0.4],N_variable=1,N=10000,N_kaons=10000,N_low_dens=10000,TOV=True)
+#tst.testing_total_eos(variable="c",B=200,variable_range=[0.4,0.4],N_variable=1,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
+
 '''
 Test that creating parameter sets works
 
@@ -124,4 +128,29 @@ Input parameters:
 '''
 #tst.test_write_and_read_MR_to_file(filename="runs/tests/MR_files/test.txt")
 
+import numpy as np
 
+'''
+Test difference with/without kaons
+'''
+'''
+NB = 2
+N_Delta = 2
+N_m_s = 2
+N_c = 2
+B_vec = [180,180,190,180]
+Delta_vec = [100,100,110,100]
+m_s_vec = [150,150,160,130]
+c_vec = [0.,0.1,0.1,0.25]
+tst.test_few_different_EoS_w_wo_kaons(B_vec,
+                                      Delta_vec,
+                                      m_s_vec,
+                                      c_vec,
+                                      N=1000,
+                                      N_kaons=1000,
+                                      N_low_dens=1000,
+                                      eos_name="RMF",
+                                      RMF_filename="FSUGarnet.inp",
+                                      TOV_limit=True,
+                                      TOV=True)
+'''

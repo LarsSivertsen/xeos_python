@@ -17,6 +17,7 @@ class EOS_set:
                 ,rho_max=3
                 ,RMF_filename = "FSUGoldgarnet.inp"
                 ,filename_crust="nveos.in"
+                ,TOV_limit=True
                 ,TOV=False):
         '''
         N = number of points used in RMF model
@@ -27,6 +28,7 @@ class EOS_set:
         self.rho_max = rho_max
         self.filename_crust = filename_crust
         self.TOV = TOV
+        self.TOV_limit=TOV_limit
         self.constants()
         self.rho_C = self.get_rhoC()
         self.e_vec,self.P_vec,self.rho_vec,self.mu_e_vec,self.mu_n_vec,self.xp_vec,self.fields_vec,self.v2_vec = self.get_core_EOS(self.rho_C)
@@ -35,7 +37,7 @@ class EOS_set:
         self.v2_vec = np.gradient(self.P_vec,self.e_vec,edge_order=2)
         self.v2_w_crust_vec = np.gradient(self.P_w_crust_vec,self.e_w_crust_vec,edge_order=2)
         if(TOV==True):
-            R_vec,M_vec,Lambda_vec,P_c_vec = TOV_Rahul.tov_solve(self.e_w_crust_vec,self.P_w_crust_vec,self.v2_w_crust_vec)
+            R_vec,M_vec,Lambda_vec,P_c_vec = TOV_Rahul.tov_solve(self.e_w_crust_vec,self.P_w_crust_vec,self.v2_w_crust_vec,TOV_limit=self.TOV_limit)
             self.R_vec = R_vec
             self.M_vec = M_vec
             self.Lambda_vec = Lambda_vec
@@ -395,24 +397,25 @@ class EOS_set:
 
     def add_crust(self):
         P_conv = 8.96057e-7 #Convert between MeV/fm^3 to M_sol/km^3
-        e_temp = []
-        P_temp = []
-        rho_temp = []
+        e_crust = []
+        P_crust = []
+        rho_crust = []
         for line in reversed(list(open(self.filename_crust,'r'))):
             e,P,rho = line.split()[:3]
             e = np.float64(e)/P_conv
             P = np.float64(P)/P_conv
             rho = np.float64(rho)
             if(P<self.P_vec[0]):
-                e_temp.append(e)
-                P_temp.append(P)
-                rho_temp.append(rho)
+                e_crust.append(e)
+                P_crust.append(P)
+                rho_crust.append(rho)
             else:
                 break
-
-        self.e_w_crust_vec = np.concatenate((np.array(e_temp),np.array(self.e_vec)))
-        self.P_w_crust_vec = np.concatenate((np.array(P_temp),np.array(self.P_vec)))
-        self.rho_w_crust_vec = np.concatenate((np.array(rho_temp),np.array(self.rho_vec)))
+        v2_crust = np.gradient(np.array(P_crust),np.array(e_crust),edge_order=2)
+        self.P_w_crust_vec = np.concatenate((np.array(P_crust),self.P_vec))[1:]
+        self.e_w_crust_vec = np.concatenate((np.array(e_crust),self.e_vec))[1:]
+        self.rho_w_crust_vec = np.concatenate((np.array(rho_crust),self.rho_vec))[1:]
+        self.v2_w_crust_vec = np.concatenate((v2_crust,self.v2_vec))[1:]
 
 #ms,gs2,gv2,gp2,gd2,kappa,lambd,zeta,lambda_v = np.loadtxt('FSUGold.inp')        #read in the parameter file
 #import matplotlib.pyplot as plt

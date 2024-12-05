@@ -60,18 +60,20 @@ def write_MR_to_file(eos,filename):
     R_vec = eos.R_vec
     Lambda_vec = eos.Lambda_vec
     P_c_vec = eos.P_c_vec
+    rho_c_vec = eos.rho_c_vec
 
     file = open(filename,'w')
 
-    file.write("M[M_sun], R[km], Lambda[1], P_c[MeV/fm^3]\n")
+    file.write("M[M_sun], R[km], Lambda[1], P_c[MeV/fm^3], rho_c[fm^-3]\n")
 
     for i in range(len(M_vec)):
         M = M_vec[i]
         R = R_vec[i]
         Lambda = Lambda_vec[i]
         P_c = P_c_vec[i]
+        rho_c = rho_c_vec[i]
 
-        file.write(str(M)+" "+str(R)+" "+str(Lambda)+" "+str(P_c)+"\n")
+        file.write(str(M)+" "+str(R)+" "+str(Lambda)+" "+str(P_c)+" "+str(rho_c)+"\n")
 
     file.close()
 
@@ -91,12 +93,14 @@ def read_MR_from_file(filename):
         R = float(line[1])
         Lambda = float(line[2])
         P_c = float(line[3])
+        rho_c = float(line[4])
 
         M_vec.append(M)
         R_vec.append(R)
         Lambda_vec.append(Lambda)
         P_c_vec.append(P_c)
+        rho_c_vec.append(rho_c)
     file.close()
-    return np.array(M_vec),np.array(R_vec),np.array(Lambda_vec),np.array(P_c_vec)
+    return np.array(M_vec),np.array(R_vec),np.array(Lambda_vec),np.array(P_c_vec),np.array(rho_c)
 
 
