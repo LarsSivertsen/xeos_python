@@ -3,7 +3,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 test = False
-runs = [1007]
+runs = [1003]
 if(test):
     run_folder = "runs/test_runs/"
 else:
