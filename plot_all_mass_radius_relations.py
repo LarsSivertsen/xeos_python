@@ -9,7 +9,7 @@ if(test):
 else:
     run_folder = "runs/"
 i = 0
-imax = 5000
+imax = 1000
 for run_number in runs:
     filenames = []
     with open(run_folder+"run_"+str(run_number)+"/filenames.txt","r") as filenames:
@@ -141,7 +141,7 @@ else:
     plt.savefig(run_folder+"P_of_e_all.pdf")
 
 plt.figure("M of rho_c all")
-plt.xlim(0,40)
+plt.xlim(0,5)
 plt.ylim(0,2.2)
 plt.xlabel("$\\rho_c$[MeV/fm$^3$]")
 plt.ylabel("M[$M_\\odot$]")
