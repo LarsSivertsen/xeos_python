@@ -519,11 +519,11 @@ def test_few_different_EoS_w_wo_kaons(B_vec
                           ,mix_phase=False
                           ,eos_low_dens=eos_low_dens
                           ,TOV=TOV)
-        filename = "runs/tests/test_no_mix_"+str(i)
-        i+=1
-        wrt.write_EoS_to_file(eos_no_mix,filename)
+        filename = "runs/tests/test_no_mix_"
+        wrt.write_EoS_to_file(eos_no_mix,filename+"EoS"+"_"+str(i))
+        wrt.write_MR_to_file(eos_no_mix,filename+"MR"+"_"+str(i))
         equations_of_state.append([eos_kaons,eos_no_mix])
-
+        i+=1
         plt.figure("MR")
         plt.plot(eos_kaons.R_vec,eos_kaons.M_vec,"r")
         plt.plot(eos_no_mix.R_vec,eos_no_mix.M_vec,"k--")
