@@ -83,7 +83,7 @@ class CFL_EoS(object):
         mask_xp = self.remove_nan_mask(xp_NM_vec,mu_q_NM_vec)
         mask_e = self.remove_nan_mask(e_NM_vec,mu_q_NM_vec)
         mask_mu_e = self.remove_nan_mask(mu_e_NM_vec,mu_q_NM_vec)
-        order = "cubic"
+        order = "linear"
         self.e_of_mu_q_low_dens = interp1d(mu_q_NM_vec[mask_e],e_NM_vec[mask_e],kind=order,fill_value="extrapolate")
         self.P_of_mu_q_low_dens = interp1d(mu_q_NM_vec[mask_P],P_NM_vec[mask_P],kind=order,fill_value="extrapolate")
         self.rho_of_mu_q_low_dens = interp1d(mu_q_NM_vec[mask_rho],rho_NM_vec[mask_rho],kind=order,fill_value="extrapolate")
@@ -109,7 +109,7 @@ class CFL_EoS(object):
                     self.status="Fail"
             print(self.status)
             if(self.status!="Fail"):
-                self.rho_of_P = interp1d(self.P_w_crust_vec,self.rho_w_crust_vec,kind="linear")
+                self.rho_of_P = interp1d(self.P_w_crust_vec,self.rho_w_crust_vec,kind="linear",fill_value="extrapolate")
                 try:
                     R_vec,M_vec,Lambda_vec,P_c_vec = TOV_Rahul.tov_solve(self.e_w_crust_vec,self.P_w_crust_vec,self.v2_w_crust_vec,TOV_limit=self.TOV_limit)
                     self.R_vec = R_vec
@@ -117,7 +117,7 @@ class CFL_EoS(object):
                     self.Lambda_vec = Lambda_vec
                     self.P_c_vec = P_c_vec
                     self.rho_c_vec = self.rho_of_P(P_c_vec)
-                    self.remove_unstable_end()
+                    #self.remove_unstable_end()
                 except:
                     self.R_vec = np.zeros(100)
                     self.M_vec = np.zeros(100)
@@ -219,7 +219,7 @@ class CFL_EoS(object):
             #Sanity check for pressure. Should be equal to P_CFL_vec
             self.P_CFL_test_vec[i] = self.pressure_CFL(self.mu_q_CFL_vec[i],self.pF_CFL_vec[i])
 
-        order = "cubic"
+        order = "linear"
         self.P_CFL_vec = self.mu_q_CFL_vec*self.rho_CFL_vec-self.e_CFL_vec
         self.P_of_mu_q_CFL = interp1d(self.mu_q_CFL_vec,self.P_CFL_vec,kind=order,fill_value="extrapolate")
         self.e_of_mu_q_CFL = interp1d(self.mu_q_CFL_vec,self.e_CFL_vec,kind=order,fill_value="extrapolate")
@@ -548,7 +548,7 @@ class CFL_EoS(object):
 
         #Create interpolation tables for the kaon phase from infinite quark chemical potential
         #and up until the transition. Extrapolate to make it easier to find transition point.
-        order = "cubic"
+        order = "linear"
         self.mu_e_of_mu_q_kaons = (interp1d(self.mu_q_CFL_kaons_vec[self.mix_index_start:],
                                             self.mu_e_CFL_kaons_vec[self.mix_index_start:],
                                             kind=order,fill_value="extrapolate"))

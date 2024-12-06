@@ -138,15 +138,15 @@ NB = 2
 N_Delta = 2
 N_m_s = 2
 N_c = 2
-B_vec = [180,180,180,180]
+B_vec = [190,190,190,200]
 Delta_vec = [100,100,100,100]
 m_s_vec = [150,150,150,150]
-c_vec = [0.,0.1,0.2,0.3]
+c_vec = [0.1,0.2,0.3,0.3]
 
-B_vec = [190]
-Delta_vec = [100]
-m_s_vec = [150]
-c_vec = [0.1]
+#B_vec = [200]
+#Delta_vec = [100]
+#m_s_vec = [150]
+#c_vec = [0.3]
 tst.test_few_different_EoS_w_wo_kaons(B_vec,
                                       Delta_vec,
                                       m_s_vec,
@@ -156,6 +156,6 @@ tst.test_few_different_EoS_w_wo_kaons(B_vec,
                                       N_low_dens=1000,
                                       eos_name="RMF",
                                       RMF_filename="FSUGarnet.inp",
-                                      TOV_limit=True,
+                                      TOV_limit=False,
                                       TOV=True)
 
