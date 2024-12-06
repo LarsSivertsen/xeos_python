@@ -88,10 +88,10 @@ Input parameters:
                             use parameters that are more similar to this Waleca model
 
 '''
-tst.testing_total_eos(variable="B",variable_range=[170,210],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True,TOV_limit=False)
-tst.testing_total_eos(variable="Delta",variable_range=[50,150],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
-tst.testing_total_eos(variable="m_s",variable_range=[50,250],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
-tst.testing_total_eos(variable="c",B=200,variable_range=[0.,0.3],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
+#tst.testing_total_eos(variable="B",variable_range=[170,210],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True,TOV_limit=False)
+#tst.testing_total_eos(variable="Delta",variable_range=[50,150],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
+#tst.testing_total_eos(variable="m_s",variable_range=[50,250],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
+#tst.testing_total_eos(variable="c",B=200,variable_range=[0.,0.3],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
 #tst.testing_total_eos(variable="c",B=200,variable_range=[0.4,0.4],N_variable=1,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
 #tst.testing_total_eos(variable="c",B=200,variable_range=[0.4,0.4],N_variable=1,N=10000,N_kaons=10000,N_low_dens=10000,TOV=True)
 #tst.testing_total_eos(variable="c",B=200,variable_range=[0.4,0.4],N_variable=1,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)

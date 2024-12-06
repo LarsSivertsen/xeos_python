@@ -488,7 +488,7 @@ class CFL_EoS(object):
             kFp_test=self.kFp_CFL_kaons_vec[ii]
             mu_q_test = self.mu_q_CFL_kaons_vec[ii]
 
-            while(self.mu_e_CFL_kaons_vec[ii-k+1]<self.mu_e_of_mu_q_low_dens(mu_q_test)):
+            while(self.mu_e_CFL_kaons_vec[ii-k+1]<self.mu_e_of_mu_q_low_dens(mu_q_test) and k<ii-1):
                 mu_q_test = self.mu_q_CFL_kaons_vec[ii-k]
                 pF_test = self.fermi_momenta_CFL(mu_q_test,pF_test)[0]
 
