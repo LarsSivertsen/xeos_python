@@ -133,15 +133,20 @@ import numpy as np
 '''
 Test difference with/without kaons
 '''
-'''
+
 NB = 2
 N_Delta = 2
 N_m_s = 2
 N_c = 2
-B_vec = [180,180,190,180]
-Delta_vec = [100,100,110,100]
-m_s_vec = [150,150,160,130]
-c_vec = [0.,0.1,0.1,0.25]
+B_vec = [180,180,180,180]
+Delta_vec = [100,100,100,100]
+m_s_vec = [150,150,150,150]
+c_vec = [0.,0.1,0.2,0.3]
+
+B_vec = [190]
+Delta_vec = [100]
+m_s_vec = [150]
+c_vec = [0.1]
 tst.test_few_different_EoS_w_wo_kaons(B_vec,
                                       Delta_vec,
                                       m_s_vec,
@@ -153,4 +158,4 @@ tst.test_few_different_EoS_w_wo_kaons(B_vec,
                                       RMF_filename="FSUGarnet.inp",
                                       TOV_limit=True,
                                       TOV=True)
-'''
+

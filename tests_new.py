@@ -491,6 +491,7 @@ def test_few_different_EoS_w_wo_kaons(B_vec
     equations_of_state = []
     rho_max = 6.4
     eos_low_dens = RMF_eos.EOS_set(N=N_low_dens,rho_max=rho_max,RMF_filename=RMF_filename,TOV=TOV,TOV_limit=TOV_limit)
+    i = 0
     for B,Delta,m_s,c in zip(B_vec,Delta_vec,m_s_vec,c_vec):
 
         eos_kaons = exotic_eos.CFL_EoS(B
@@ -518,7 +519,9 @@ def test_few_different_EoS_w_wo_kaons(B_vec
                           ,mix_phase=False
                           ,eos_low_dens=eos_low_dens
                           ,TOV=TOV)
-
+        filename = "runs/tests/test_no_mix_"+str(i)
+        i+=1
+        wrt.write_EoS_to_file(eos_no_mix,filename)
         equations_of_state.append([eos_kaons,eos_no_mix])
 
         plt.figure("MR")
@@ -543,6 +546,8 @@ def test_few_different_EoS_w_wo_kaons(B_vec
     plt.plot([],[],"r",label="kaons")
     plt.plot([],[],"k--",label="no mix")
     plt.legend()
+    plt.savefig("figures/tests/no_mix/M_of_R"+".pdf")
+
     plt.figure("P of e")
     plt.xlabel("e[MeV/fm$^3$]")
     plt.ylabel("P[MeV/fm$^3$]")
@@ -551,6 +556,9 @@ def test_few_different_EoS_w_wo_kaons(B_vec
     plt.plot([],[],"r",label="kaons")
     plt.plot([],[],"k--",label="no mix")
     plt.legend()
+    plt.savefig("figures/tests/no_mix/P_of_e"+".pdf")
+
+
     plt.figure("P of rho")
     plt.xlabel("$\\rho$[fm$^{-3}$]")
     plt.ylabel("P[MeV/fm^3]")
@@ -559,6 +567,9 @@ def test_few_different_EoS_w_wo_kaons(B_vec
     plt.plot([],[],"r",label="kaons")
     plt.plot([],[],"k--",label="no mix")
     plt.legend()
+    plt.savefig("figures/tests/no_mix/P_of_rho"+".pdf")
+
+
     plt.figure("v2 of rho")
     plt.xlabel("$\\rho$[fm$^{-3}$]")
     plt.ylabel("$v^2$[1]")
@@ -567,7 +578,9 @@ def test_few_different_EoS_w_wo_kaons(B_vec
     plt.plot([],[],"r",label="kaons")
     plt.plot([],[],"k--",label="no mix")
     plt.legend()
+    plt.savefig("figures/tests/no_mix/v2_of_rho"+".pdf")
     plt.show()
+
     return equations_of_state
 
 
