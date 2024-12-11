@@ -138,19 +138,35 @@ NB = 2
 N_Delta = 2
 N_m_s = 2
 N_c = 2
-B_vec = [190,190,190,200]
-Delta_vec = [100,100,100,100]
-m_s_vec = [150,150,150,150]
-c_vec = [0.1,0.2,0.3,0.3]
+B_vec_1 = [190,190,190,200]
+Delta_vec_1 = [100,100,100,100]
+m_s_vec_1 = [150,150,150,150]
+c_vec_1 = [0.1,0.2,0.3,0.3]
 
-#B_vec = [200]
-#Delta_vec = [100]
-#m_s_vec = [150]
-#c_vec = [0.3]
-tst.test_few_different_EoS_w_wo_kaons(B_vec,
-                                      Delta_vec,
-                                      m_s_vec,
-                                      c_vec,
+B_vec_2 = [190,190,190,200]
+Delta_vec_2 = [100,100,100,100]
+m_s_vec_2 = [150,150,150,150]
+c_vec_2 = [0.1,0.2,0.3,0.3]
+
+
+B_vec_1 = [155]
+Delta_vec_1 = [100]
+m_s_vec_1 = [155]
+c_vec_1 = [0.55]
+
+B_vec_2 = [156.5]
+Delta_vec_2 = [100]
+m_s_vec_2 = [150]
+c_vec_2 = [0.5]
+
+tst.test_few_different_EoS_w_wo_kaons(B_vec_1,
+                                      Delta_vec_1,
+                                      m_s_vec_1,
+                                      c_vec_1,
+                                      B_vec_2,
+                                      Delta_vec_2,
+                                      m_s_vec_2,
+                                      c_vec_2,
                                       N=1000,
                                       N_kaons=1000,
                                       N_low_dens=1000,
