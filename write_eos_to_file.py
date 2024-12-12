@@ -7,7 +7,10 @@ def write_EoS_to_file(eos,filename):
     file = open(filename,'w')
     file.write("e[MeV/fm^3], P[MeV/fm^3], rho[fm^-3], v2[1], mu_q[MeV], mu_e[MeV]\n")
 
-    mu_q_vec = eos.mu_q_vec
+    try:
+        mu_q_vec = eos.mu_q_vec
+    except:
+        mu_q_vec = eos.mu_n_vec/3
     mu_e_vec = eos.mu_e_vec
     e_vec = eos.e_vec
     P_vec = eos.P_vec
@@ -60,8 +63,10 @@ def write_MR_to_file(eos,filename):
     R_vec = eos.R_vec
     Lambda_vec = eos.Lambda_vec
     P_c_vec = eos.P_c_vec
-    rho_c_vec = eos.rho_c_vec
-
+    try:
+        rho_c_vec = eos.rho_c_vec
+    except:
+        rho_c_vec = np.zeros(len(eos.M_vec))
     file = open(filename,'w')
 
     file.write("M[M_sun], R[km], Lambda[1], P_c[MeV/fm^3], rho_c[fm^-3]\n")
@@ -72,7 +77,6 @@ def write_MR_to_file(eos,filename):
         Lambda = Lambda_vec[i]
         P_c = P_c_vec[i]
         rho_c = rho_c_vec[i]
-
         file.write(str(M)+" "+str(R)+" "+str(Lambda)+" "+str(P_c)+" "+str(rho_c)+"\n")
 
     file.close()

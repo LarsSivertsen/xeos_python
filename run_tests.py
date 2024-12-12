@@ -174,4 +174,3 @@ tst.test_few_different_EoS_w_wo_kaons(B_vec_1,
                                       RMF_filename="FSUGarnet.inp",
                                       TOV_limit=False,
                                       TOV=True)
-
