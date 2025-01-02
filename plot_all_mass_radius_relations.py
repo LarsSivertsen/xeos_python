@@ -3,7 +3,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 test = False
-runs = [1003]
+runs = [1010]
 if(test):
     run_folder = "runs/test_runs/"
 else:
@@ -81,8 +81,8 @@ for run_number in runs:
                 plt.plot(e_vec,P_vec,color="grey",alpha=0.1)
                 plt.figure("v2 of rho all",figsize=(10,10))
                 plt.plot(rho_vec,v2_vec,color="grey",alpha=0.1)
-                #plt.figure("P of rho all",figsize=(10,10))
-                #plt.plot(rho_vec,P_vec,color="grey",alpha=0.1)
+                plt.figure("P of rho all",figsize=(10,10))
+                plt.plot(rho_vec,P_vec,color="grey",alpha=0.1)
                 #plt.figure("v2 of rho all",figsize=(10,10))
                 #plt.plot(rho_vec,v2_vec,color="grey",alpha=0.1)
             i+=1
@@ -139,6 +139,20 @@ if(len(runs)==1):
 else:
     plt.title("Pe-relations, runs "+str(runs[0])+"-"+str(runs[-1]))
     plt.savefig(run_folder+"P_of_e_all.pdf")
+
+plt.figure("P of rho all")
+plt.xlim(0,3)
+plt.ylim(0,1400)
+plt.xlabel("$\\rho$[fm$^3$]")
+plt.ylabel("$P$[MeV/fm$^{3}$]")
+if(len(runs)==1):
+    run_number = runs[0]
+    plt.title("Prho-relations, run "+str(run_number))
+    plt.savefig(run_folder+"run_"+str(run_number)+"/P_of_rho_all.pdf")
+else:
+    plt.title("Prho-relations, runs "+str(runs[0])+"-"+str(runs[-1]))
+    plt.savefig(run_folder+"P_of_rho_all.pdf")
+
 
 plt.figure("M of rho_c all")
 plt.xlim(0,5)

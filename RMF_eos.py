@@ -14,6 +14,7 @@ class EOS_set:
     '''
     def __init__(self
                 ,N=100
+                ,rho_min=0.1
                 ,rho_max=3
                 ,RMF_filename = "FSUGoldgarnet.inp"
                 ,filename_crust="nveos.in"
@@ -30,7 +31,8 @@ class EOS_set:
         self.TOV = TOV
         self.TOV_limit=TOV_limit
         self.constants()
-        self.rho_C = self.get_rhoC()
+        #self.rho_C = self.get_rhoC()
+        self.rho_C = rho_min
         self.e_vec,self.P_vec,self.rho_vec,self.mu_e_vec,self.mu_n_vec,self.xp_vec,self.fields_vec,self.v2_vec = self.get_core_EOS(self.rho_C)
 
         self.add_crust()
