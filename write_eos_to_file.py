@@ -89,6 +89,7 @@ def read_MR_from_file(filename):
     R_vec = []
     Lambda_vec = []
     P_c_vec = []
+    rho_c_vec = []
 
     file.readline()
     for line in file:

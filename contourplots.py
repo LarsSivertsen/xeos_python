@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-run_number = 1010
+run_number = 1012
 B_vec,Delta_vec,m_s_vec,c_vec=crp.read_parameters_from_file('runs/run_'+str(run_number)+"/parameters.txt")
 filenames_int = []
 with open("runs/run_"+str(run_number)+"/filenames.txt","r") as all_filenames:
@@ -22,7 +22,7 @@ for i in filenames_int:
     j+=1
 
 df = pd.DataFrame({"$B$ (0,200)":data[:,0],"$\\Delta$ (0,1000)":data[:,1],"$m_s$ (80,120)":data[:,2],"$c$ (0,1.0)":data[:,3]})
-plt.figure
+plt.figure()
 sns.pairplot(data=df)
 plt.savefig("runs/run_"+str(run_number)+"/parameter_contour_plot.pdf")
 plt.show()

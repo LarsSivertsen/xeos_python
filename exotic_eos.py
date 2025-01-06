@@ -229,6 +229,8 @@ class CFL_EoS(object):
         self.P_of_mu_q_CFL = interp1d(self.mu_q_CFL_vec,self.P_CFL_vec,kind=order,fill_value="extrapolate")
         self.e_of_mu_q_CFL = interp1d(self.mu_q_CFL_vec,self.e_CFL_vec,kind=order,fill_value="extrapolate")
         self.rho_of_mu_q_CFL = interp1d(self.mu_q_CFL_vec,self.rho_CFL_vec,kind=order,fill_value="extrapolate")
+        self.P_of_rho_CFL = interp1d(self.rho_CFL_vec,self.P_CFL_vec,kind=order,fill_value="extrapolate")
+        self.P_of_e_CFL = interp1d(self.e_CFL_vec,self.P_CFL_vec,kind=order,fill_value="extrapolate")
 
         return
 
@@ -462,7 +464,7 @@ class CFL_EoS(object):
 
         #Code between horisontal dashed line walks backwards to add more points to CFL kaon phase
         #in case convergence did not go well initially
-        #-----------------------------------------------
+        #--------------
 
         ii = 0
         k=0
@@ -645,13 +647,21 @@ class CFL_EoS(object):
         P_low_dens_vec = self.P_of_mu_q_low_dens(mu_q_vec)
         self.mu_q_vec = mu_q_vec[P_low_dens_vec>=0]
         P_low_dens_vec = P_low_dens_vec[P_low_dens_vec>=0]
-        P_kaons_vec = self.P_of_mu_q_kaons(self.mu_q_vec)
         e_low_dens_vec = self.e_of_mu_q_low_dens(self.mu_q_vec)
-        e_kaons_vec = self.e_of_mu_q_kaons(self.mu_q_vec)
         rho_low_dens_vec = self.rho_of_mu_q_low_dens(self.mu_q_vec)
-        rho_kaons_vec = self.rho_of_mu_q_kaons(self.mu_q_vec)
         mu_e_low_dens_vec = self.mu_e_of_mu_q_low_dens(self.mu_q_vec)
-        mu_e_kaons_vec = self.mu_e_of_mu_q_kaons(self.mu_q_vec)
+        if(self.status!="no mix"):
+            P_kaons_vec = self.P_of_mu_q_kaons(self.mu_q_vec)
+            e_kaons_vec = self.e_of_mu_q_kaons(self.mu_q_vec)
+            rho_kaons_vec = self.rho_of_mu_q_kaons(self.mu_q_vec)
+            mu_e_kaons_vec = self.mu_e_of_mu_q_kaons(self.mu_q_vec)
+        else:
+            P_kaons_vec = self.P_of_mu_q_CFL(self.mu_q_vec)
+            e_kaons_vec = self.e_of_mu_q_CFL(self.mu_q_vec)
+            rho_kaons_vec = self.rho_of_mu_q_CFL(self.mu_q_vec)
+            mu_e_kaons_vec = np.zeros(len(self.mu_q_vec))
+
+
         self.P_vec = np.max(np.vstack((P_low_dens_vec,P_kaons_vec)), axis=0)
         self.low_indices = np.where(self.P_vec==P_low_dens_vec)
         self.high_indices = np.where(self.P_vec==P_kaons_vec)
@@ -674,12 +684,22 @@ class CFL_EoS(object):
             self.P_vec[self.high_indices[0][k]] = P_low_dens_vec[self.high_indices[0][k]]
             k=1
 
-        self.rho_trans = optimize.fsolve(lambda rho:self.P_of_rho_low_dens(rho)-self.P_of_rho_kaons(rho),self.rho_vec[self.low_indices][-1])
-        self.e_trans = optimize.fsolve(lambda e:self.P_of_e_low_dens(e)-self.P_of_e_kaons(e),self.e_vec[self.low_indices][-1])
+        if(self.status != "no mix"):
+            self.rho_trans = optimize.fsolve(lambda rho:self.P_of_rho_low_dens(rho)-self.P_of_rho_kaons(rho),self.rho_vec[self.low_indices][-1])
+            self.e_trans = optimize.fsolve(lambda e:self.P_of_e_low_dens(e)-self.P_of_e_kaons(e),self.e_vec[self.low_indices][-1])
+            self.P_vec[self.high_indices[0][k-1]] = self.P_of_e_kaons(self.e_trans)
+
+        else:
+            self.mu_q_trans = optimize.fsolve(lambda mu_q:self.P_of_mu_q_low_dens(mu_q)-self.P_of_mu_q_CFL(mu_q),self.mu_q_vec[self.low_indices][-1])
+            self.rho_trans = self.rho_of_mu_q_CFL(self.mu_q_trans)
+            self.e_trans = self.e_of_mu_q_CFL(self.mu_q_trans)
+            #self.rho_trans = optimize.fsolve(lambda rho:self.P_of_rho_low_dens(mu_q)-self.P_of_rho_CFL(mu_q),self.rho_vec[self.low_indices][-1])
+            #self.e_trans = optimize.fsolve(lambda e:self.P_of_e_low_dens(e)-self.P_of_e_CFL(e),self.e_vec[self.low_indices][-1])
+            self.P_vec[self.high_indices[0][k-1]] = self.P_of_e_CFL(self.e_trans)
+
 
         self.rho_vec[self.high_indices[0][k-1]] = self.rho_trans
         self.e_vec[self.high_indices[0][k-1]] = self.e_trans
-        self.P_vec[self.high_indices[0][k-1]] = self.P_of_e_kaons(self.e_trans)
 
 
         if(self.rho_vec[self.low_indices][-1]<0.15):
@@ -689,6 +709,9 @@ class CFL_EoS(object):
                                                          self.e_vec[np.concatenate((self.low_indices[0],self.high_indices[0][:k-1]))],edge_order=2)
         v2_vec_2 = np.gradient(self.P_vec[self.high_indices[0][k-1:]],self.e_vec[self.high_indices[0][k-1:]],edge_order=2)
         self.v2_vec = np.concatenate((v2_vec_1,v2_vec_2))
+        if(self.status=="no mix"):
+            self.v2_vec[len(v2_vec_1)-1]=1e-5
+            self.v2_vec[len(v2_vec_1)]=1e-5
         if(sum(np.isnan(self.v2_vec))>0 or min(self.v2_vec)<0 or min(self.P_vec)<0):
             self.status="Fail"
         return

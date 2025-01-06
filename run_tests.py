@@ -88,7 +88,7 @@ Input parameters:
                             use parameters that are more similar to this Waleca model
 
 '''
-tst.testing_total_eos(variable="B",variable_range=[190,250],N_variable=5,N=100,N_kaons=100,N_low_dens=100,TOV=True,TOV_limit=False)
+#tst.testing_total_eos(variable="B",variable_range=[190,250],N_variable=5,N=100,N_kaons=100,N_low_dens=100,TOV=True,TOV_limit=False)
 #tst.testing_total_eos(variable="Delta",variable_range=[50,150],N_variable=5,N=100,N_kaons=100,N_low_dens=100,TOV=True)
 #tst.testing_total_eos(variable="m_s",variable_range=[50,250],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
 #tst.testing_total_eos(variable="c",B=200,variable_range=[0.,0.3],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
@@ -148,7 +148,7 @@ Delta_vec_2 = [100,100,100,100]
 m_s_vec_2 = [150,150,150,150]
 c_vec_2 = [0.1,0.2,0.3,0.3]
 
-
+'''
 B_vec_1 = [155]
 Delta_vec_1 = [100]
 m_s_vec_1 = [155]
@@ -174,4 +174,4 @@ tst.test_few_different_EoS_w_wo_kaons(B_vec_1,
                                       RMF_filename="FSUGarnet.inp",
                                       TOV_limit=False,
                                       TOV=True)
-'''
+

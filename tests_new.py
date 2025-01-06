@@ -555,13 +555,14 @@ def test_few_different_EoS_w_wo_kaons(B_vec_1
 
 
     plt.figure("MR")
+    plt.title("$\Delta = $"+str(round(Delta_vec_1[0],4))+"MeV")
     plt.xlabel("R[km]")
     plt.ylabel("M[$M_\odot$]")
     plt.xlim(8,15)
     plt.ylim(0,2.2)
     plt.plot([],[],"b-",label="RMF")
-    plt.plot([],[],"r-.",label="kaons")
-    plt.plot([],[],"k--",label="no mix")
+    plt.plot([],[],"r-.",label="kaons, $B^{1/4}$="+str(round(B_vec_1[0],4))+"MeV, $m_s$="+str(round(m_s_vec_1[0],4))+"MeV, c="+str(round(c_vec_1[0],2)))
+    plt.plot([],[],"k--",label="no mix, $B^{1/4}$="+str(round(B_vec_2[0],4))+"MeV, $m_s$="+str(round(m_s_vec_2[0],4))+"MeV, c="+str(round(c_vec_2[0],2)))
     plt.legend()
     plt.savefig("figures/tests/no_mix/M_of_R"+".pdf")
 
