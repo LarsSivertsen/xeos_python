@@ -509,7 +509,8 @@ def test_few_different_EoS_w_wo_kaons(B_vec_1
                           ,RMF_filename=RMF_filename
                           ,mix_phase=True
                           ,eos_low_dens=eos_low_dens
-                          ,TOV=TOV)
+                          ,TOV=TOV
+                          ,TOV_limit=TOV_limit)
 
         eos_no_mix = exotic_eos.CFL_EoS(B2
                           ,Delta2
@@ -522,7 +523,8 @@ def test_few_different_EoS_w_wo_kaons(B_vec_1
                           ,RMF_filename=RMF_filename
                           ,mix_phase=False
                           ,eos_low_dens=eos_low_dens
-                          ,TOV=TOV)
+                          ,TOV=TOV
+                          ,TOV_limit=TOV_limit)
 
         filename = "runs/tests/no_mix_vs_mix/test_no_mix_"
         wrt.write_EoS_to_file(eos_no_mix,filename+"EoS"+"_"+str(i))

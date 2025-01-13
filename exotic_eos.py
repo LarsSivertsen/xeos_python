@@ -693,8 +693,6 @@ class CFL_EoS(object):
             self.mu_q_trans = optimize.fsolve(lambda mu_q:self.P_of_mu_q_low_dens(mu_q)-self.P_of_mu_q_CFL(mu_q),self.mu_q_vec[self.low_indices][-1])
             self.rho_trans = self.rho_of_mu_q_CFL(self.mu_q_trans)
             self.e_trans = self.e_of_mu_q_CFL(self.mu_q_trans)
-            #self.rho_trans = optimize.fsolve(lambda rho:self.P_of_rho_low_dens(mu_q)-self.P_of_rho_CFL(mu_q),self.rho_vec[self.low_indices][-1])
-            #self.e_trans = optimize.fsolve(lambda e:self.P_of_e_low_dens(e)-self.P_of_e_CFL(e),self.e_vec[self.low_indices][-1])
             self.P_vec[self.high_indices[0][k-1]] = self.P_of_e_CFL(self.e_trans)
 
 
@@ -702,7 +700,7 @@ class CFL_EoS(object):
         self.e_vec[self.high_indices[0][k-1]] = self.e_trans
 
 
-        if(self.rho_vec[self.low_indices][-1]<0.15):
+        if(self.rho_vec[self.low_indices][-1]<0.15 or self.rho_vec[self.low_indices][-1]>1.5):
             self.status = "no CFL"
 
         v2_vec_1 = np.gradient(self.P_vec[np.concatenate((self.low_indices[0],self.high_indices[0][:k-1]))],
@@ -714,6 +712,9 @@ class CFL_EoS(object):
             self.v2_vec[len(v2_vec_1)]=1e-5
         if(sum(np.isnan(self.v2_vec))>0 or min(self.v2_vec)<0 or min(self.P_vec)<0):
             self.status="Fail"
+        if(~np.all(self.e_vec[1:] >= self.e_vec[:-1])):
+            self.status="Fail"
+
         return
 
 

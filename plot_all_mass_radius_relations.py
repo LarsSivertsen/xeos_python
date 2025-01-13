@@ -3,13 +3,13 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 test = False
-runs = [1012]
+runs = [1015]
 if(test):
     run_folder = "runs/test_runs/"
 else:
     run_folder = "runs/"
 i = 0
-imax = 1000
+imax = 30000
 for run_number in runs:
     filenames = []
     with open(run_folder+"run_"+str(run_number)+"/filenames.txt","r") as filenames:

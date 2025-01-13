@@ -58,7 +58,7 @@ Input parameters:
 '''
 #tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="APR")
 #tst.testing_CFL(B=260,Delta=100,m_s=150,c=0.0,N=100,N_kaons=1000,N_low_dens=100,eos_name="RMF")
-#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.3,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF")
+#tst.testing_CFL(B=900,Delta=1000,m_s=150,c=0.5,N=100,N_kaons=100,N_low_dens=100,eos_name="RMF")
 #tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF",mix_phase=False)
 #tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.3,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF",mix_phase=False)
 #tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF",plot_original_phases=True)
@@ -149,6 +149,7 @@ m_s_vec_2 = [150,150,150,150]
 c_vec_2 = [0.1,0.2,0.3,0.3]
 
 '''
+
 B_vec_1 = [155]
 Delta_vec_1 = [100]
 m_s_vec_1 = [155]
@@ -159,6 +160,17 @@ Delta_vec_2 = [100]
 m_s_vec_2 = [150]
 c_vec_2 = [0.5]
 
+B_vec_1 = [160]
+Delta_vec_1 = [100]
+m_s_vec_1 = [160]
+c_vec_1 = [0.55]
+
+B_vec_2 = [156.5]
+Delta_vec_2 = [100]
+m_s_vec_2 = [150]
+c_vec_2 = [0.5]
+
+
 tst.test_few_different_EoS_w_wo_kaons(B_vec_1,
                                       Delta_vec_1,
                                       m_s_vec_1,
@@ -167,9 +179,9 @@ tst.test_few_different_EoS_w_wo_kaons(B_vec_1,
                                       Delta_vec_2,
                                       m_s_vec_2,
                                       c_vec_2,
-                                      N=1000,
-                                      N_kaons=1000,
-                                      N_low_dens=1000,
+                                      N=100,
+                                      N_kaons=100,
+                                      N_low_dens=100,
                                       eos_name="RMF",
                                       RMF_filename="FSUGarnet.inp",
                                       TOV_limit=False,

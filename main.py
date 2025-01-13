@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     time_0 = time.perf_counter()
 
-    run_number = 1012
+    run_number = 1015
     test = False
 
     if(test):
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     if(os.path.isdir(run_folder+"run_"+str(run_number))==False):
         os.mkdir(run_folder+"run_"+str(run_number))
     TOV = True
-    TOV_limit=True
+    TOV_limit=False
     N_low_dens = 100
     rho_max = 1.5
     #RMF_filename="FSUGarnet.inp"
@@ -72,13 +72,13 @@ if __name__ == "__main__":
 
     filename_par = run_folder+"run_"+str(run_number)+"/parameters.txt"
 
-    N = 5000 #Number of EoS we compute
+    N = 10000 #Number of EoS we compute
     N_CFL = 100
     N_kaons = 100
 
 
-    B_range = [140,350]
-    Delta_range = [0,400]
+    B_range = [140,900]
+    Delta_range = [0,500]
     m_s_range = [80,120]
     c_range = [0.,1.0]
 
