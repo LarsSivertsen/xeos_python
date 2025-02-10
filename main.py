@@ -22,6 +22,8 @@ def task(i,
          N_kaons,
          TOV,
          TOV_limit,
+         rho_max_low_dens,
+         rho_max_high_dens,
          run_folder):
 
     B = B_vec[i]
@@ -29,7 +31,8 @@ def task(i,
     m_s = m_s_vec[i]
     c = c_vec[i]
     try:
-        eos = exotic_eos.CFL_EoS(B,Delta,m_s,c=c,N=N_CFL,N_kaons=N_kaons,eos_low_dens=eos_low_dens,TOV=TOV,TOV_limit=TOV_limit,eos_name=eos_name)
+        eos = exotic_eos.CFL_EoS(B,Delta,m_s,c=c,N=N_CFL,N_kaons=N_kaons,eos_low_dens=eos_low_dens,TOV=TOV,TOV_limit=TOV_limit,eos_name=eos_name,
+                                 rho_max_low_dens=rho_max_low_dens,rho_max_high_dens=rho_max_high_dens)
         if(eos.status=="Success"):
             filename_eos = run_folder+"run_"+str(run_number)+"/EoS/"+str(i).zfill(6)+".txt"
             wrt.write_EoS_to_file(eos,filename_eos)
@@ -47,7 +50,7 @@ if __name__ == "__main__":
 
     time_0 = time.perf_counter()
 
-    run_number = 1015
+    run_number = 3000
     test = False
 
     if(test):
@@ -58,27 +61,32 @@ if __name__ == "__main__":
         os.mkdir(run_folder+"run_"+str(run_number))
     TOV = True
     TOV_limit=False
-    N_low_dens = 100
-    rho_max = 1.5
+    N_low_dens = 200
+    rho_max_high_dens = 6.4
+    dmu_q = 3
+    dmu_q_factor = 1
+    rho_max_low_dens = 1.5
+
     #RMF_filename="FSUGarnet.inp"
     #RMF_filename = "NL3.inp"
     RMF_filename = "FSUGarnet.inp"
     eos_name = "RMF"
     if(eos_name=="RMF"):
-        eos_low_dens = RMF_eos.EOS_set(N=N_low_dens,rho_max=rho_max,RMF_filename=RMF_filename,TOV=TOV,TOV_limit=TOV_limit)
+        eos_low_dens = RMF_eos.EOS_set(N=N_low_dens,rho_max=rho_max_low_dens,RMF_filename=RMF_filename,TOV=TOV,TOV_limit=TOV_limit)
     elif(eos_name=="APR"):
         eos_low_dens = APR03_eos(N=N_low_dens)
 
 
     filename_par = run_folder+"run_"+str(run_number)+"/parameters.txt"
 
-    N = 10000 #Number of EoS we compute
-    N_CFL = 100
-    N_kaons = 100
+    N = 40000 #Number of EoS we compute
+    N_CFL = 200
+    N_kaons = 200
+
 
 
     B_range = [140,900]
-    Delta_range = [0,500]
+    Delta_range = [0,550]
     m_s_range = [80,120]
     c_range = [0.,1.0]
 
@@ -99,15 +107,12 @@ if __name__ == "__main__":
     print("Done generating low density eos")
     print("Time spent generating low density eos:", time.perf_counter()-time_0)
     time_0 = time.perf_counter()
-    print("Progress: 0%")
 
     j_N = min([100,N])
     k_N = int(np.floor(N/j_N))
     for k in tqdm(range(k_N)):
         for j in range(j_N):
             i = j+j_N*k
-            #if(int(progress)<int(progress+d_progress)):
-            #    print("progress: "+str(int(progress+d_progress))+"%")
             progress+=d_progress
 
             process = Process(target = task, args = (i,
@@ -121,12 +126,16 @@ if __name__ == "__main__":
                                                      N_kaons,
                                                      TOV,
                                                      TOV_limit,
+                                                     rho_max_low_dens,
+                                                     rho_max_high_dens,
                                                      run_folder)
                               )
             process.start()
         process.join()
+
     print("Time spent on exotic part:", time.perf_counter()-time_0)
     num_valid = sf.make_filename_list(run_number,test)
+    crp.add_class_to_parameter_file(run_number)
     print(str(num_valid)+" or "+str(round(100*num_valid/N,1))+"% valid eos")
 
 

@@ -60,8 +60,10 @@ Input parameters:
 #tst.testing_CFL(B=260,Delta=100,m_s=150,c=0.0,N=100,N_kaons=1000,N_low_dens=100,eos_name="RMF")
 #tst.testing_CFL(B=900,Delta=1000,m_s=150,c=0.5,N=100,N_kaons=100,N_low_dens=100,eos_name="RMF")
 #tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF",mix_phase=False)
-#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.3,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF",mix_phase=False)
-#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.0,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF",plot_original_phases=True)
+#611.748639944808 91.33824375031739 94.96623250037253 0.6936619224230832
+#209.28790773370937 190.9172555665832 107.08541091744786 0.6705562802728627
+#tst.testing_CFL(B=243.7,Delta=100,m_s=150,c=0.3,N=200,N_kaons=200,N_low_dens=200,eos_name="RMF",mix_phase=True)
+#tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.3,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF",plot_original_phases=True)
 #tst.testing_CFL(B=190,Delta=100,m_s=150,c=0.3,N=1000,N_kaons=1000,N_low_dens=1000,eos_name="RMF",plot_original_phases=True)
 
 
@@ -88,7 +90,8 @@ Input parameters:
                             use parameters that are more similar to this Waleca model
 
 '''
-#tst.testing_total_eos(variable="B",variable_range=[190,250],N_variable=5,N=100,N_kaons=100,N_low_dens=100,TOV=True,TOV_limit=False)
+
+tst.testing_total_eos(variable="B",c=0.3,variable_range=[10,300],N_variable=40,N=100,N_kaons=100,N_low_dens=100,TOV=True,TOV_limit=False,rho_max=2.5)
 #tst.testing_total_eos(variable="Delta",variable_range=[50,150],N_variable=5,N=100,N_kaons=100,N_low_dens=100,TOV=True)
 #tst.testing_total_eos(variable="m_s",variable_range=[50,250],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
 #tst.testing_total_eos(variable="c",B=200,variable_range=[0.,0.3],N_variable=5,N=1000,N_kaons=1000,N_low_dens=1000,TOV=True)
@@ -149,6 +152,7 @@ m_s_vec_2 = [150,150,150,150]
 c_vec_2 = [0.1,0.2,0.3,0.3]
 
 '''
+'''
 
 B_vec_1 = [155]
 Delta_vec_1 = [100]
@@ -186,4 +190,4 @@ tst.test_few_different_EoS_w_wo_kaons(B_vec_1,
                                       RMF_filename="FSUGarnet.inp",
                                       TOV_limit=False,
                                       TOV=True)
-
+'''

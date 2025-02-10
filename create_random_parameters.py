@@ -30,6 +30,7 @@ def make_parameter_file(filename,N,parameter_ranges,distributions=["gauss","gaus
 
         elif(distributions[0] == "uniform"):
             B = random.uniform(envelope(Delta)[0],envelope(Delta)[1])
+            B = random.uniform(parameter_ranges[0][0],parameter_ranges[0][1])
 
         else:
             print("No support for distribution: "+distribution[3])
@@ -84,7 +85,29 @@ def read_parameters_from_file(filename):
     return np.array(B_vec),np.array(Delta_vec),np.array(m_s_vec),np.array(c_vec)
 
 
+def add_class_to_parameter_file(run_number):
+    parameter_filename = "runs/run_"+str(run_number)+"/parameters.txt"
+    B_vec,Delta_vec,m_s_vec,c_vec = read_parameters_from_file(parameter_filename)
+    filename_valid = "runs/run_"+str(run_number)+"/filenames.txt"
+    filenames_num = []
+    with open(filename_valid,"r") as filenames:
+        filenames.readline()
+        for filename in filenames:
+            filename_num = int(filename[:6])
+            filenames_num.append(filename_num)
+    filenames_num = np.array(filenames_num)
 
+    with open("runs/run_"+str(run_number)+"/parameters_w_class.txt","w") as new_file:
+        new_file.write("B^{1/4}[MeV], Delta[MeV], m_s[MeV], c[1], Phase_transition[bool] \n")
+        for i in range(len(B_vec)):
+            if(i in filenames_num):
+                Class = 1
+            else:
+                Class = 0
+            new_file.write(str(B_vec[i])+" "+str(Delta_vec[i])+" "+str(m_s_vec[i])+" "+str(c_vec[i])+" "+str(Class)+"\n")
+
+run_number = 1016
+add_class_to_parameter_file(run_number)
 
 '''
 def make_parameter_file(filename,N,parameter_ranges,distributions=["gauss","gauss","gauss","gauss"],stds=3):
