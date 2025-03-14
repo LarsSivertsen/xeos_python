@@ -20,7 +20,7 @@ def make_parameter_file(filename,N,parameter_ranges,distributions=["gauss","gaus
             Delta = random.uniform(parameter_ranges[1][0],parameter_ranges[1][1])
 
         else:
-            print("No support for distribution: "+distribution[3])
+            print("No support for distribution: "+distributions[3])
             return
 
         if(distributions[0] == "gauss"):
@@ -33,7 +33,7 @@ def make_parameter_file(filename,N,parameter_ranges,distributions=["gauss","gaus
             B = random.uniform(parameter_ranges[0][0],parameter_ranges[0][1])
 
         else:
-            print("No support for distribution: "+distribution[3])
+            print("No support for distribution: "+distributions[3])
             return
 
         if(distributions[2] == "gauss"):
@@ -44,7 +44,7 @@ def make_parameter_file(filename,N,parameter_ranges,distributions=["gauss","gaus
             m_s = random.uniform(parameter_ranges[2][0],parameter_ranges[2][1])
 
         else:
-            print("No support for distribution: "+distribution[3])
+            print("No support for distribution: "+distributions[3])
             return
 
         if(distributions[3] == "gauss"):
@@ -55,7 +55,7 @@ def make_parameter_file(filename,N,parameter_ranges,distributions=["gauss","gaus
             c =  random.uniform(parameter_ranges[3][0],parameter_ranges[3][1])
 
         else:
-            print("No support for distribution: "+distribution[3])
+            print("No support for distribution: "+distributions[3])
             return
 
         parameters[:,j] = B,Delta,m_s,c

@@ -1,0 +1,31 @@
+40000       ,#N, number of eos computed
+
+3001        ,#run_number, run number. All files made by this program will be stored in runs/run_number
+
+1           ,#TOV, bool, if set to 1 (True), program solves the TOV equations.
+
+0           ,#TOV_limit, bool, if set 0 (False), computes the TOV equations only until first maximum mass.
+            ,#If set to 1 (True) computes to last maximum mass if more local maximum exists
+
+200         ,#N_low_dens, number of points used in the low density RMF EoS
+
+6.4         ,#rho_high_dens
+
+140,900     ,#B_range, lower and upper range for bag constant B in MeV
+
+0,550       ,#Delta_range, lower and upper range for pairing gap Delta in MeV
+
+80,120      ,#m_s_range, lower and upper range for mass of strange quark m_s in MeV
+
+0,1         ,#c_range, lower and upper range for phenomelogical quark interaction constant c in units 1
+
+"uniform"   ,#Distribution used for picking B (supports "uniform" and "gaussian")
+
+"uniform"   ,#Distribution used for picking Delta (supports "uniform" and "gaussian")
+
+"uniform"   ,#Distribution used for picking m_s (supports "uniform" and "gaussian")
+
+"uniform"   ,#Distribution used for picking c (supports "uniform" and "gaussian")
+
+
+

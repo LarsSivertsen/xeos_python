@@ -9,7 +9,7 @@ import APR03_eos
 from multiprocessing import Pool, Process, cpu_count
 import summarize_folder as sf
 from tqdm import tqdm
-
+import read_input_parameters as rip
 
 def task(i,
          B_vec,
@@ -19,7 +19,6 @@ def task(i,
          eos_apr03,
          run_number,
          N_CFL,
-         N_kaons,
          TOV,
          TOV_limit,
          rho_max_low_dens,
@@ -31,7 +30,7 @@ def task(i,
     m_s = m_s_vec[i]
     c = c_vec[i]
     try:
-        eos = exotic_eos.CFL_EoS(B,Delta,m_s,c=c,N=N_CFL,N_kaons=N_kaons,eos_low_dens=eos_low_dens,TOV=TOV,TOV_limit=TOV_limit,eos_name=eos_name,
+        eos = exotic_eos.CFL_EoS(B,Delta,m_s,c=c,N_CFL=N_CFL,eos_low_dens=eos_low_dens,TOV=TOV,TOV_limit=TOV_limit,eos_name=eos_name,
                                  rho_max_low_dens=rho_max_low_dens,rho_max_high_dens=rho_max_high_dens)
         if(eos.status=="Success"):
             filename_eos = run_folder+"run_"+str(run_number)+"/EoS/"+str(i).zfill(6)+".txt"
@@ -49,8 +48,27 @@ def task(i,
 if __name__ == "__main__":
 
     time_0 = time.perf_counter()
+    (N,
+    run_number,
+    TOV,
+    TOV_limit,
+    N_low_dens,
+    N_CFL,
+    rho_max_low_dens,
+    rho_max_high_dens,
+    dmu_q,
+    dmu_q_factor,
+    B_range,
+    Delta_range,
+    m_s_range,
+    c_range,
+    distribution_B,
+    distribution_Delta,
+    distribution_m_s,
+    distribution_c,
+    RMF_filename,
+    eos_name) = rip.read_parameters_main()
 
-    run_number = 3000
     test = False
 
     if(test):
@@ -59,18 +77,7 @@ if __name__ == "__main__":
         run_folder = "runs/"
     if(os.path.isdir(run_folder+"run_"+str(run_number))==False):
         os.mkdir(run_folder+"run_"+str(run_number))
-    TOV = True
-    TOV_limit=False
-    N_low_dens = 200
-    rho_max_high_dens = 6.4
-    dmu_q = 3
-    dmu_q_factor = 1
-    rho_max_low_dens = 1.5
 
-    #RMF_filename="FSUGarnet.inp"
-    #RMF_filename = "NL3.inp"
-    RMF_filename = "FSUGarnet.inp"
-    eos_name = "RMF"
     if(eos_name=="RMF"):
         eos_low_dens = RMF_eos.EOS_set(N=N_low_dens,rho_max=rho_max_low_dens,RMF_filename=RMF_filename,TOV=TOV,TOV_limit=TOV_limit)
     elif(eos_name=="APR"):
@@ -79,19 +86,9 @@ if __name__ == "__main__":
 
     filename_par = run_folder+"run_"+str(run_number)+"/parameters.txt"
 
-    N = 40000 #Number of EoS we compute
-    N_CFL = 200
-    N_kaons = 200
-
-
-
-    B_range = [140,900]
-    Delta_range = [0,550]
-    m_s_range = [80,120]
-    c_range = [0.,1.0]
 
     parameter_ranges = [B_range,Delta_range,m_s_range,c_range]
-    distributions=["uniform","uniform","uniform","uniform"]
+    distributions=[distribution_B,distribution_Delta,distribution_m_s,distribution_c]
     crp.make_parameter_file(filename_par,N,parameter_ranges,distributions=distributions)
 
     B_vec, Delta_vec, m_s_vec, c_vec = crp.read_parameters_from_file(filename_par)
@@ -123,7 +120,6 @@ if __name__ == "__main__":
                                                      eos_low_dens,
                                                      run_number,
                                                      N_CFL,
-                                                     N_kaons,
                                                      TOV,
                                                      TOV_limit,
                                                      rho_max_low_dens,

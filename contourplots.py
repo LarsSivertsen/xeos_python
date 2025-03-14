@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-run_number = 3000
+run_number = 3002
 B_vec,Delta_vec,m_s_vec,c_vec=crp.read_parameters_from_file('runs/run_'+str(run_number)+"/parameters.txt")
 filenames_int = []
 with open("runs/run_"+str(run_number)+"/filenames.txt","r") as all_filenames:

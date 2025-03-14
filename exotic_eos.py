@@ -12,8 +12,7 @@ from scipy.interpolate import interp1d
 #Class for computing the color flavored locked (CFL) phase (or just the exotic phase)
 class CFL_EoS(object):
     def __init__(self,B,Delta,m_s               #Bag constant, pairng gap, strange quark mass
-                     ,N = 100                   #Number of points used to compute CFL phase
-                     ,N_kaons = 1000            #Number of points used to compute mixed kaon and CFL phase
+                     ,N_CFL = 100                   #Number of points used to compute CFL phase
                      ,N_low_dens = 100          #Number of points used in low density phase of the EoS                         #Bag constant
                      ,mu_q_min = 939/3.           #Minimum quark chemical potential we start computing CFL from [MeV]
                      ,mu_q_max = 1000.           #Maximum quark chemical potential we compute the CFL phase to [MeV]
@@ -34,7 +33,7 @@ class CFL_EoS(object):
                      ,dmu_q = 2
                      ,dmu_q_factor = 2
                  ):
-        self.N = N
+        self.N_CFL = N_CFL
         self.B = B
         self.Delta = Delta
         self.m_s = m_s
@@ -51,7 +50,6 @@ class CFL_EoS(object):
 
 
 
-        self.N_kaons = N_kaons
         self.N_low_dens = N_low_dens
         self.rho_min_low_dens = rho_min_low_dens
         self.rho_max_low_dens = rho_max_low_dens
@@ -230,13 +228,13 @@ class CFL_EoS(object):
 
     #Build the entire CFL table (Note, this is without the kaon condensate)
     def build_CFL_EoS(self):
-        self.mu_q_CFL_vec = np.linspace(self.mu_q_min,self.mu_q_max,self.N)
-        self.pF_CFL_vec = np.zeros(self.N)
-        self.e_CFL_vec = np.zeros(self.N)
-        self.rho_CFL_vec = np.zeros(self.N)
-        self.P_CFL_test_vec = np.zeros(self.N)
+        self.mu_q_CFL_vec = np.linspace(self.mu_q_min,self.mu_q_max,self.N_CFL)
+        self.pF_CFL_vec = np.zeros(self.N_CFL)
+        self.e_CFL_vec = np.zeros(self.N_CFL)
+        self.rho_CFL_vec = np.zeros(self.N_CFL)
+        self.P_CFL_test_vec = np.zeros(self.N_CFL)
         pF_guess = self.mu_q_CFL_vec[0]
-        for i in range(self.N):
+        for i in range(self.N_CFL):
             mu_q = self.mu_q_CFL_vec[i]
             self.pF_CFL_vec[i] = self.fermi_momenta_CFL(mu_q,pF_guess)
             pF = self.pF_CFL_vec[i]
@@ -309,7 +307,7 @@ class CFL_EoS(object):
             return 0
         return self.f_pi_squared(mu_q)*mu_e*(1-self.kaon_mass_squared(mu_q)**2/mu_e**4)/(self.hc**3)
 
-
+    #Functional used to find the electron chemical potential for the mixed phase
     def chemical_potential_electron_CFL_kaons_functional(self,mu_e_xp_rho,mu_q,pF):
         if(self.eos_name=="APR"):
             mu_e,xp,rho = mu_e_xp_rho
