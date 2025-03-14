@@ -11,7 +11,7 @@ filename corresponding to the line number in parameters.txt
 those parameters. This is used to make a classifier for the valid eos. 
 
 To create mass radius plots one can go to the "xeos_pyhton" folder and open the "plot_all_mass_radius_relations.py" file, 
-change the run number to the desired run number, and run it.
+change the run number to the desired run number, and run it. The plots will be saved in the respective run folder. 
 
 Tests:
 The "tests_new.py" has the code for different tests. They can be run by opening the "run_tests.py" and running the desired test. 
